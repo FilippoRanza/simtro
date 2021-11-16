@@ -7,6 +7,7 @@ mod engine;
 mod graph;
 mod passenger;
 mod traffic_generator;
+mod station;
 
 mod utils;
 
