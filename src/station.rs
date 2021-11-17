@@ -9,15 +9,15 @@ impl Station {
     pub fn enter_passenger(&mut self, p: Passenger) {
         self.passengers.push(p)
     }
-}
 
+    pub fn passengers_to(&mut self, dst: usize) {}
+}
 
 pub enum StationState {
     Free,
-    Car(usize)
+    Car(usize),
 }
 
-
 pub struct Railway {
-    length: usize
+    length: usize,
 }

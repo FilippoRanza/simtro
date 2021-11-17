@@ -21,6 +21,10 @@ impl Passenger {
     fn new(id: u32, start: usize, stop: usize) -> Self {
         Self { id, start, stop }
     }
+
+    pub fn is_destination(&self, station: usize) -> bool {
+        self.stop == station
+    }
 }
 
 impl utils::unique_id::SetId for Passenger {
