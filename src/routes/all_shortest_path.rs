@@ -1,7 +1,6 @@
-///
-/// Floyd–Warshall Algorithm implementation.
-/// See: https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm.
-///
+//! Floyd–Warshall Algorithm implementation.
+//! See: <https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm>
+//!
 use ndarray::Array2;
 use num_traits::PrimInt;
 
@@ -17,7 +16,7 @@ type FWResult<T> = (Array2<T>, Array2<usize>);
 /// When there is no dicrect connection between two nodes,
 /// the value associated is T::max_value().
 /// Function assumes that g is a square matrix. Panics otherwise.
-fn all_shortest_path<T: PrimInt + Default>(g: Array2<T>) -> FWResult<T> {
+pub fn all_shortest_path<T: PrimInt + Default>(g: Array2<T>) -> FWResult<T> {
     let (mut dist, mut next) = init_matrixes(g);
     let n = dist.nrows();
     for h in 0..n {

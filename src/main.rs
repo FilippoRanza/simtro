@@ -2,7 +2,6 @@ use rand;
 use rand_distr;
 use rand_distr::Distribution;
 
-mod all_shortest_path;
 mod car;
 mod engine;
 mod graph;
@@ -10,13 +9,10 @@ mod passenger;
 mod station;
 mod traffic_generator;
 
+mod routes;
 mod utils;
 
-macro_rules! fdiv {
-    ($a: ident, $b: ident) => {
-        ($a as f64) / ($b as f64)
-    };
-}
+use ndarray::Array2;
 
 struct Poisson {
     rng: rand::prelude::ThreadRng,
@@ -137,38 +133,55 @@ where
     }
 }
 
-fn main() {
-    for lambda in (100..10000).step_by(100) {
-        let mut poisson = Poisson::new(lambda as f64);
-        let total = 100;
-        let mut success = 0;
-        let mut non_zero = 0;
-        let mut error = RunningAverage::new();
-        let mut trailing_zeros = RunningAverage::new();
-        for n in poisson.iter(total) {
-            let mut count = 0;
-
-            let mut trailing = TrailingZeros::new();
-            for k in Assign::new(n, 120) {
-                //print!("{} ", k);
-                count += k;
-                trailing.last(k);
-            }
-            if count == n {
-                success += 1;
-            }
-            if count > 0 {
-                non_zero += 1;
-            }
-            trailing_zeros.add_value(trailing.count as f64);
-            //println!("\n{} - {}", n, count);
-            error.add_value(fdiv! {count, n});
+fn arcs_to_matrix(arcs: &[(usize, usize)]) -> Array2<u32> {
+    let max = *arcs
+        .iter()
+        .map(|(a, b)| if a > b { a } else { b })
+        .max()
+        .unwrap()
+        + 1;
+    let mut g = Array2::from_elem((max, max), 0);
+    for i in 0..max {
+        for j in 0..max {
+            g[(i, j)] = u32::MAX;
         }
-        println!("{}", lambda);
-        println!("\t{}/{}", success, total);
-        println!("\t{}/{}", non_zero, total);
-        println!("\t{}", error.average());
-        println!("\t{}", trailing_zeros.average());
-        println! {};
+    }
+
+    for (i, j) in arcs.into_iter() {
+        g[(*i, *j)] = 1;
+        g[(*j, *i)] = 1;
+    }
+
+    for i in 0..max {
+        g[(i, i)] = 0;
+    }
+
+    g
+}
+
+use std::collections::HashSet;
+
+fn main() {
+    let arcs = [
+        (0, 1),
+        (1, 2),
+        (2, 3),
+        (2, 5),
+        (2, 7),
+        (3, 4),
+        (7, 8),
+        (5, 6),
+    ];
+    let g = arcs_to_matrix(&arcs);
+
+    println!("{:?}", g);
+    println!("{:?}", routes::all_shortest_path::all_shortest_path(g));
+
+    let set = HashSet::from([1, 2, 3, 4, 5, 6]);
+    for _ in (0..100) {
+        for i in &set {
+            print!("{} ", i);
+        }
+        println!();
     }
 }

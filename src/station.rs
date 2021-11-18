@@ -1,5 +1,10 @@
 use crate::passenger::Passenger;
 
+pub trait StationClass {
+    fn is_terminus(&self) -> bool;
+    fn is_interchange(&self) -> bool;
+}
+
 pub struct Station {
     state: StationState,
     passengers: Vec<Passenger>,

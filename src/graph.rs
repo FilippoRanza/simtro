@@ -1,4 +1,4 @@
-/// Simple graph implemenation using adjacent list.
+//! Simple graph implemenation using adjacent list.
 
 /// Specify the type used for the arc weight
 pub type GraphWeight = u32;
@@ -13,7 +13,6 @@ pub struct Arc<A> {
     next: usize,
     weight: GraphWeight,
 }
-
 
 /// Graph implementation.
 /// Store an information about each node in generic N
@@ -34,7 +33,6 @@ impl<N, A> Graph<N, A> {
 struct AdjacentList<A> {
     list: Vec<Vec<Arc<A>>>,
 }
-
 
 /// Convert the Graph from the adjacent list to the distance matrix representation.
 /// Information in N and A will be lost; only the distance between two arcs is kept.
