@@ -1,11 +1,12 @@
 //! This module implements the code used by the passenger
 //! to determine the direction (i.e. it must find the  correct train
-//! by terminus) knowing the current passenger's position and the passenger's station
+//! by terminus) knowing the current passenger's position and the passenger's station.
+//!
 
 use ndarray::Array2;
 use num_traits::PrimInt;
 
-use super::lines::build_metro_lines;
+use super::lines::MetroLines;
 use super::Mat;
 
 use crate::utils::matrix_utils;
@@ -25,6 +26,11 @@ impl MetroDirection {
     }
 }
 
+/// Build the metro direction matrix. Suppose that there is a passenger that need to go
+/// from station A to station B, station A is on line 1 that has its terminus as stations T1 and T2.
+/// The  Metro Direction Matrix tells in which direction (from T1 to T2 or from T2 to T1) goes the train that will bring the passenger to B if
+/// B is on line 1, or to the next interchange if B is on another line. Entry *AB* is in this case either T1 or T2.
+/// Take in input the successo matrix, the distance matrix both from [`super::all_shortest_path::all_shortest_path`], terminus list and the interchange path matrix from [`super::interchange_path::build_interchange_path_matrix`]
 pub fn build_metro_direction<T: PrimInt + std::fmt::Debug>(
     next: &Mat,
     dist: &Array2<T>,
@@ -32,7 +38,7 @@ pub fn build_metro_direction<T: PrimInt + std::fmt::Debug>(
     interchange_path_matrix: &Mat,
 ) -> Mat {
     let mut output = matrix_utils::zeros_as(next);
-    let lines = build_metro_lines(next, terminus);
+    let lines = MetroLines::new(next, terminus);
 
     for line in lines.line_iterator() {
         for s1 in line.stations {
@@ -55,6 +61,10 @@ pub fn build_metro_direction<T: PrimInt + std::fmt::Debug>(
     output
 }
 
+/// This function knowing the distance matrix (from [`super::all_shortest_path::all_shortest_path`]), the
+/// terminus couple (irrelevant order) the start end the destionation
+/// returns the direction that passengers nedds to follow to go from station start to station dest. It assumes
+/// that start and dest are on the same line.
 fn find_closer<T: PrimInt + std::fmt::Debug>(
     dist: &Array2<T>,
     t1: usize,
@@ -75,6 +85,7 @@ fn find_closer<T: PrimInt + std::fmt::Debug>(
     }
 }
 
+///
 fn get_interchange_direction(
     start: usize,
     dst: usize,
