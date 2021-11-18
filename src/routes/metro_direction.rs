@@ -35,7 +35,7 @@ impl MetroDirection {
 /// that will bring the passenger to B if
 /// B is on line 1, or to the next interchange if B is on another line. Entry
 /// *AB* is in this case either T1 or T2.
-/// Take in input the successo matrix, the distance matrix both from
+/// Take in input the successor matrix, the distance matrix both from
 /// [`super::all_shortest_path::all_shortest_path`],
 /// terminus list and the interchange path matrix from
 /// [`super::interchange_path::build_interchange_path_matrix`]
@@ -72,8 +72,8 @@ pub fn build_metro_direction<T: PrimInt + std::fmt::Debug>(
 /// This function knowing the distance matrix (from
 /// [`super::all_shortest_path::all_shortest_path`]),
 /// the
-/// terminus couple (irrelevant order) the start end the destionation
-/// returns the direction that passengers nedds to follow to go from station start
+/// terminus couple (irrelevant order) the start end the destination
+/// returns the direction that passengers needs to follow to go from station start
 /// to station dest. It assumes
 /// that start and dest are on the same line.
 fn find_closer<T: PrimInt + std::fmt::Debug>(
@@ -99,8 +99,8 @@ fn find_closer<T: PrimInt + std::fmt::Debug>(
 /// This function identifies the direction the passenger must
 /// follow to reach from station start (that is on one line) station 
 /// dst that is on another line. The direction set by this function is 
-/// the direction required to reach the next interchange to reach the destionation. 
-/// Takes in input the start station, the destionation station, the interchange
+/// the direction required to reach the next interchange to reach the destination. 
+/// Takes in input the start station, the destination station, the interchange
 /// path matrix and the current direction matrix.
 fn get_interchange_direction(
     start: usize,

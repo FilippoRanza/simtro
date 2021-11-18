@@ -26,7 +26,7 @@ pub struct MetroLines<'a> {
 }
 
 impl<'a> MetroLines<'a> {
-    /// Iniitialize Line data structure. Start from the successor matrix
+    /// Initialize Line data structure. Start from the successor matrix
     /// and the terminus list. Order inside the list and order between station is
     /// irrelevant.
     pub fn new(next: &Mat, terminus: &'a [(usize, usize)]) -> Self {
@@ -58,7 +58,7 @@ impl<'a> MetroLines<'a> {
     }
 
     /// Iterate though all the unique couple of lines. Unique means that
-    /// if couple (a, b) is returend the iterator will never generate couple (b, a).
+    /// if couple (a, b) is returned the iterator will never generate couple (b, a).
     pub fn cross_line_iter(&'a self) -> impl IntoIterator<Item = (Set<'a>, Set<'a>)> {
         CrossLineIterator::new(&self.lines)
     }
@@ -82,7 +82,7 @@ impl<'a> LineItem<'a> {
     }
 }
 
-/// Implemente the unique couple line iterator.
+/// Implement the unique couple line iterator.
 /// The actual index iterator is not implemented here. See
 /// [`crate::utils::cross_index_iterator::CrossIndexIterator`]
 /// for that.
@@ -156,7 +156,7 @@ mod test {
         }
         for i in &line_one {
             for j in &line_two {
-                // 2 is the interchange staion: is on both lines.arg
+                // 2 is the interchange station: is on both lines.arg
                 if *i != 2 && *j != 2 {
                     assert!(!metro_lines.is_same_line(*i, *j), "{} {}", i, j)
                 }

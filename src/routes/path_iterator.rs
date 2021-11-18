@@ -44,9 +44,6 @@ impl<'a> PathIterator<'a> {
 
 impl<'a> Iterator for PathIterator<'a> {
     type Item = usize;
-    /// Define the actual iterator code. This code 
-    /// is a readaptation of the reconstruction path 
-    /// algorithm used after Floyd-Warshall.
     fn next(&mut self) -> Option<Self::Item> {
         if self.curr != self.end {
             let tmp = self.curr;

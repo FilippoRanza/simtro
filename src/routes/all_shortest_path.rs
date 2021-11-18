@@ -7,13 +7,13 @@ use num_traits::PrimInt;
 use crate::utils::matrix_utils::zeros;
 
 /// Simple type alias. Useful for shorter function signature.
-/// The first item is the distnace matrix, the second is the
+/// The first item is the distance matrix, the second is the
 /// successor matrix.
 type FWResult<T> = (Array2<T>, Array2<usize>);
 
 /// Floyd-Warshall Algorithm implementation. The input matrix
 /// is expected to be the square adjacent matrix of the graph.
-/// When there is no dicrect connection between two nodes,
+/// When there is no direct connection between two nodes,
 /// the value associated is T::max_value().
 /// Function assumes that g is a square matrix. Panics otherwise.
 pub fn all_shortest_path<T: PrimInt + Default>(g: Array2<T>) -> FWResult<T> {

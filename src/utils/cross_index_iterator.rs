@@ -1,14 +1,14 @@
 //! This module defines a cross index iterator that will return all the unique couple
-//! from the carthesian product (0..n) X (0..n).
+//! from the Cartesian product (0..n) X (0..n).
 //! For example, (a, b) is considered as a duplicate of (b, a)
 
 
 /// Define the unique couple iterator. For coherence 
 /// with the language's rules the iterator will return
-/// indexes in the half open intervall [0, n[. 
+/// indexes in the half open interval [0, n[. 
 /// This struct can be used to define more complex iterators that 
 /// need to iterate twice on the same vector, like when working 
-/// with matrixes.
+/// with matrices.
 pub struct CrossIndexIterator {
     count: usize,
     i: usize,

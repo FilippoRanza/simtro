@@ -48,7 +48,7 @@ fn board(sts: &mut [Station], cars: &mut [Car]) {
 }
 
 fn unboard(cars: &mut [Car]) {
-    // It is orrible but it can easly be parallelized with rayon
+    // It is horrible but it can easily be parallelized with rayon
     cars.iter_mut()
         .filter(|c| c.in_station())
         .for_each(|c| c.unboard_passengers());

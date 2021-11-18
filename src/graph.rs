@@ -1,4 +1,4 @@
-//! Simple graph implemenation using adjacent list.
+//! Simple graph implementation using adjacent list.
 
 /// Specify the type used for the arc weight
 pub type GraphWeight = u32;
@@ -7,7 +7,7 @@ use crate::utils::matrix_utils;
 use ndarray::Array2;
 
 /// Graph's Arc. Define an arbitrary information A,
-/// the destionation of the arc and the weight of the arc.
+/// the destination  of the arc and the weight of the arc.
 pub struct Arc<A> {
     info: A,
     next: usize,

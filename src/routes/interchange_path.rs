@@ -1,8 +1,8 @@
 //!
 //! This module compute the interchange path matrix for the given matrix.
 //! interchange path matrix is inside a metro system the analog for the successor
-//! metrix for a graph: item *ij*
-//! tells which is the next interchange, or terminal station to reach the destionation
+//! matrix for a graph: item *ij*
+//! tells which is the next interchange, or terminal station to reach the destination
 //! from the current
 //! starting point.
 //!
