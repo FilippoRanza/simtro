@@ -1,6 +1,25 @@
-//!
+//! This module implements both the initialization and the 
+//! query of two direction matrix. 
+//! The first is the Metro Direction Matrix that tells the 
+//! passengere the direction of the train to take in order to 
+//! reach the destionation. If there is one or more interchanges
+//! in the middle this matrix shows the direction from the current
+//! station to the next interchange on the same line. 
+//! 
+//! The second is the Intechange Path Matrix that tells the station
+//! that the passenger must visit on foot to reach the destionation from 
+//! the starting point. If the two stations are on the same line the matrix 
+//! simply states that the next is the destination; if the stations are not 
+//! on the same line then the matrix will return the next interchange on 
+//! the path. 
+//! 
+//! Those two matrix combined allow the passenger onject to correcly 
+//! reconstruct the metro path the it must follow to reach the destionation. 
+//! 
 
 use ndarray::Array2;
+
+// Type alias defined for brevity.
 type Mat = Array2<usize>;
 
 pub mod all_shortest_path;
@@ -11,6 +30,12 @@ mod path_iterator;
 
 #[cfg(test)]
 mod test_definitions {
+
+    /*
+     In this module there are the difinition 
+     for all the correct results for test 
+     in this module.
+    */
 
     use super::Mat;
     use ndarray::{arr2, Array2};

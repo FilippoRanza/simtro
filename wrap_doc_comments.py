@@ -1,5 +1,11 @@
 #! /usr/bin/python
 
+""" 
+Wrap doc-comment lines in
+Rust source code.
+"""
+
+
 
 import re
 import pathlib
@@ -17,12 +23,12 @@ def wrap_comment(match):
     words = match.group(3).split()
     count = 0
     output = ""
-    output += "//" + doc_type + " "
+    output +=  head + "//" + doc_type + " "
     for word in words:
-        if count + len(words) > 80:
+        if count + len(word) > 80:
             output += "\n"
-            output += "//" + doc_type + " "
-            count = len(words)
+            output += head + "//" + doc_type + " "
+            count = len(word)
         else:
             count += len(word)
 

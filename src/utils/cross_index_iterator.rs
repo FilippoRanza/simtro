@@ -1,3 +1,14 @@
+//! This module defines a cross index iterator that will return all the unique couple
+//! from the carthesian product (0..n) X (0..n).
+//! For example, (a, b) is considered as a duplicate of (b, a)
+
+
+/// Define the unique couple iterator. For coherence 
+/// with the language's rules the iterator will return
+/// indexes in the half open intervall [0, n[. 
+/// This struct can be used to define more complex iterators that 
+/// need to iterate twice on the same vector, like when working 
+/// with matrixes.
 pub struct CrossIndexIterator {
     count: usize,
     i: usize,
@@ -5,14 +16,20 @@ pub struct CrossIndexIterator {
 }
 
 impl CrossIndexIterator {
+    /// Initialize the struct. Requires the maximal value 
+    /// of the index. 
     pub fn new(count: usize) -> Self {
         Self { count, i: 0, j: 0 }
     }
 
+    /// Return the current indexes. Helper function for the
+    /// iterator implementation.
     fn get_current(&self) -> (usize, usize) {
         (self.i, self.j)
     }
 
+    /// Set the parameter to the next couple value. Helper function for the
+    /// iterator implementation.
     fn update(&mut self) {
         self.j += 1;
         if self.j == self.count {
