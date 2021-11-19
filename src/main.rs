@@ -1,4 +1,3 @@
-
 mod car;
 mod engine;
 mod graph;
@@ -8,8 +7,5 @@ mod traffic_generator;
 
 mod routes;
 mod utils;
-
-
-
 
 fn main() {}

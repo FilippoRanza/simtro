@@ -1,31 +1,34 @@
-//! This module perform Metro Destination Matrix and 
-//! Interchange Path Matrix initialization 
+//! This module perform Metro Destination Matrix and
+//! Interchange Path Matrix initialization
 
 use super::interchange_path;
-use super::lines;
 use super::metro_direction;
+use super::metro_line_set;
+use super::metro_lines;
 use super::Mat;
+
 use ndarray::Array2;
 use num_traits::PrimInt;
 
-/// Store the just generated Metro Destination Matrix and 
-/// the Interchange Path Matrix 
+/// Store the just generated Metro Destination Matrix and
+/// the Interchange Path Matrix
 pub struct PathMatrix {
     pub mdm: Mat,
     pub ipm: Mat,
 }
 
 impl PathMatrix {
-    /// Build the Matrices using the code in [`super::metro_direction`] and 
-    /// [`super::interchange_path`] 
+    /// Build the Matrices using the code in [`super::metro_direction`] and
+    /// [`super::interchange_path`]
     pub fn init_matrices<T: PrimInt>(
         next_mat: &Mat,
         dist_mat: &Array2<T>,
         terminus: &[(usize, usize)],
     ) -> Self {
-        let metro_lines = lines::MetroLinesSet::new(next_mat, terminus);
-        let ipm = interchange_path::build_interchange_path_matrix(next_mat, &metro_lines);
-        let mdm = metro_direction::build_metro_direction(next_mat, dist_mat, &metro_lines, &ipm);
+        let metro_lines = metro_lines::MetroLines::from_successor_matrix(next_mat, terminus);
+        let line_set = metro_line_set::MetroLinesSet::from(&metro_lines);
+        let ipm = interchange_path::build_interchange_path_matrix(next_mat, &line_set);
+        let mdm = metro_direction::build_metro_direction(next_mat, dist_mat, &line_set, &ipm);
         Self { ipm, mdm }
     }
 }
