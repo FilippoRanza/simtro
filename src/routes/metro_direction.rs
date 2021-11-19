@@ -11,20 +11,6 @@ use super::Mat;
 
 use crate::utils::matrix_utils;
 
-/// Inform passenger objects about the direction
-/// to take.
-pub struct MetroDirection {}
-
-impl MetroDirection {
-    /// Given a passenger that starts at station start and must
-    /// go at station dest this function returns the terminus (or the metro direction)
-    /// of the train that the passenger must take. If there is one (or more) interchange
-    /// in the middle the function returns the direction that
-    /// the passenger must take in order to reach the next interchange station.
-    pub fn get_direction(start: usize, dest: usize) -> usize {
-        todo! {}
-    }
-}
 
 /// Build the metro direction matrix. Suppose that there is a passenger that need to
 /// go
@@ -42,19 +28,20 @@ impl MetroDirection {
 pub fn build_metro_direction<T: PrimInt>(
     next: &Mat,
     dist: &Array2<T>,
-    terminus: &[(usize, usize)],
+    lines: &MetroLines,
     interchange_path_matrix: &Mat,
 ) -> Mat {
     let output = matrix_utils::zeros_as(next);
-    let lines = MetroLines::new(next, terminus);
-
     let output = set_in_line_directions(&lines, dist, output);
-
     set_cross_line_directions(&lines, interchange_path_matrix, output)
 }
 
 /// Set direction for station on the same line
-fn set_in_line_directions<T: PrimInt>(lines: &MetroLines, dist: &Array2<T>, mut dir_mat: Mat) -> Mat {
+fn set_in_line_directions<T: PrimInt>(
+    lines: &MetroLines,
+    dist: &Array2<T>,
+    mut dir_mat: Mat,
+) -> Mat {
     for line in lines.line_iterator() {
         for s1 in line.stations {
             for s2 in line.stations {
@@ -78,7 +65,6 @@ fn set_cross_line_directions(lines: &MetroLines, ipm: &Mat, mut dir_mat: Mat) ->
     }
     dir_mat
 }
-
 
 /// This function knowing the distance matrix (from
 /// [`super::all_shortest_path::all_shortest_path`]),
@@ -108,9 +94,9 @@ fn find_closer<T: PrimInt>(
 }
 
 /// This function identifies the direction the passenger must
-/// follow to reach from station start (that is on one line) station 
-/// dst that is on another line. The direction set by this function is 
-/// the direction required to reach the next interchange to reach the destination. 
+/// follow to reach from station start (that is on one line) station
+/// dst that is on another line. The direction set by this function is
+/// the direction required to reach the next interchange to reach the destination.
 /// Takes in input the start station, the destination station, the interchange
 /// path matrix and the current direction matrix.
 fn get_interchange_direction(
@@ -144,7 +130,9 @@ mod test {
 
         let expected_direction = test_definitions::make_correct_direction_matrix();
 
-        let direction = build_metro_direction(&next, &dist, &terminus, &interchange_path);
+        let lines = MetroLines::new(&next, &terminus);
+
+        let direction = build_metro_direction(&next, &dist, &lines, &interchange_path);
         assert_eq!(direction, expected_direction);
     }
 }

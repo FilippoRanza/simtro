@@ -1,16 +1,16 @@
 //!
-//! This module implement the path iterator. Given a successor 
-//! matrix the code  in this module defines an iterator that 
-//! returns, in order, all the nodes of the graph from node A 
-//! to node B. A and B are included in the iteration, as first 
+//! This module implement the path iterator. Given a successor
+//! matrix the code  in this module defines an iterator that
+//! returns, in order, all the nodes of the graph from node A
+//! to node B. A and B are included in the iteration, as first
 //! and last items.
 
 use super::Mat;
 
 use std::collections::HashSet;
 
-/// PathIterator, given the successor matrix returns 
-/// all the nodes in path from node A to node B. A will 
+/// PathIterator, given the successor matrix returns
+/// all the nodes in path from node A to node B. A will
 /// always be the first item and be will always be the last.
 pub struct PathIterator<'a> {
     curr: usize,
@@ -20,7 +20,7 @@ pub struct PathIterator<'a> {
 }
 
 impl<'a> PathIterator<'a> {
-    /// Initialize the struct. Specify the start node, the end node 
+    /// Initialize the struct. Specify the start node, the end node
     /// and the successor matrix.
     pub fn new(curr: usize, end: usize, next_mat: &'a Mat) -> Self {
         Self {
@@ -62,7 +62,6 @@ mod test {
     use super::super::test_definitions::make_next_matrix;
     use super::*;
 
-    
     #[test]
     fn test_path_iterator() {
         let next_mat = make_next_matrix();

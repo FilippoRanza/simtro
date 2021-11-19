@@ -1,6 +1,8 @@
 //!
 //! Manage the metro system line. This auxiliary module is designed to
 //! help the construction of the interchange path matrix and the direction matrix.
+//! Line construction performed by this module is purely speculative: it considers
+//! a line as the shortest path between two terminus station. The algorithm works correctly if this condition holds.
 
 use std::collections::HashSet;
 
@@ -61,6 +63,16 @@ impl<'a> MetroLines<'a> {
     /// if couple (a, b) is returned the iterator will never generate couple (b, a).
     pub fn cross_line_iter(&'a self) -> impl IntoIterator<Item = (Set<'a>, Set<'a>)> {
         CrossLineIterator::new(&self.lines)
+    }
+
+    /// Find interchanges between the lines in the metro network
+    pub fn find_interchanges(&self) -> HashSet<usize> {
+        self.cross_line_iter()
+            .into_iter()
+            .map(|(a, b)| a.intersection(b))
+            .flatten()
+            .map(|i| *i)
+            .collect()
     }
 }
 
@@ -162,5 +174,15 @@ mod test {
                 }
             }
         }
+    }
+
+    #[test]
+    fn test_find_interchanges() {
+        let next = test_definitions::make_next_matrix();
+        let term = test_definitions::make_terminus();
+        let lines = MetroLines::new(&next, &term);
+        let interchanges = lines.find_interchanges();
+        let correct: HashSet<usize> = test_definitions::make_interchanges().into_iter().collect();
+        assert_eq!(interchanges, correct);
     }
 }

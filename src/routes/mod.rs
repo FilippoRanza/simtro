@@ -1,39 +1,45 @@
-//! This module implements both the initialization and the 
-//! query of two direction matrix. 
-//! The first is the Metro Direction Matrix that tells the 
-//! passenger the direction of the train to take in order to 
+//! This module implements both the initialization and the
+//! query of two direction matrix.
+//! The first is the Metro Direction Matrix that tells the
+//! passenger the direction of the train to take in order to
 //! reach the destination. If there is one or more interchanges
 //! in the middle this matrix shows the direction from the current
-//! station to the next interchange on the same line. 
-//! 
+//! station to the next interchange on the same line.
+//!
 //! The second is the Interchange Path Matrix that tells the station
-//! that the passenger must visit on foot to reach the destination from 
-//! the starting point. If the two stations are on the same line the matrix 
-//! simply states that the next is the destination; if the stations are not 
-//! on the same line then the matrix will return the next interchange on 
-//! the path. 
-//! 
-//! Those two matrix combined allow the passenger object to correctly 
-//! reconstruct the metro path the it must follow to reach the destination. 
-//! 
+//! that the passenger must visit on foot to reach the destination from
+//! the starting point. If the two stations are on the same line the matrix
+//! simply states that the next is the destination; if the stations are not
+//! on the same line then the matrix will return the next interchange on
+//! the path.
+//!
+//! Those two matrix combined allow the passenger object to correctly
+//! reconstruct the metro path the it must follow to reach the destination.
+//!
 
 use ndarray::Array2;
 
 // Type alias defined for brevity.
 type Mat = Array2<usize>;
 
-pub mod all_shortest_path;
+mod all_shortest_path;
+mod build_directions;
+mod build_matrices;
 mod interchange_path;
 mod lines;
+mod matrix_wrapper;
 mod metro_direction;
 mod path_iterator;
+
+pub use matrix_wrapper::{MetroDirection, MetroInterchange};
+pub use build_directions::build_directions;
 
 #[cfg(test)]
 mod test_definitions {
 
     /*
-     In this module there are the difinition 
-     for all the correct results for test 
+     In this module there are the difinition
+     for all the correct results for test
      in this module.
     */
 
