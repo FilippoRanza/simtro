@@ -1,20 +1,20 @@
-//! This module implements both the initialization and the
-//! query of two direction matrix.
-//! The first is the Metro Direction Matrix that tells the
-//! passenger the direction of the train to take in order to
-//! reach the destination. If there is one or more interchanges
-//! in the middle this matrix shows the direction from the current
-//! station to the next interchange on the same line.
+//! This module implements both the initialization and the 
+//! query of two direction matrix. 
+//! The first is the Metro Direction Matrix that tells the 
+//! passenger the direction of the train to take in order to 
+//! reach the destination. If there is one or more interchanges 
+//! in the middle this matrix shows the direction from the current 
+//! station to the next interchange on the same line. 
 //!
-//! The second is the Interchange Path Matrix that tells the station
-//! that the passenger must visit on foot to reach the destination from
-//! the starting point. If the two stations are on the same line the matrix
-//! simply states that the next is the destination; if the stations are not
-//! on the same line then the matrix will return the next interchange on
-//! the path.
+//! The second is the Interchange Path Matrix that tells the station 
+//! that the passenger must visit on foot to reach the destination from 
+//! the starting point. If the two stations are on the same line the matrix 
+//! simply states that the next is the destination; if the stations are not 
+//! on the same line then the matrix will return the next interchange on 
+//! the path. 
 //!
-//! Those two matrix combined allow the passenger object to correctly
-//! reconstruct the metro path the it must follow to reach the destination.
+//! Those two matrix combined allow the passenger object to correctly 
+//! reconstruct the metro path the it must follow to reach the destination. 
 //!
 
 use ndarray::Array2;
@@ -32,9 +32,9 @@ mod metro_line_set;
 mod metro_lines;
 mod path_iterator;
 
+pub use metro_lines::MetroLines;
 pub use build_directions::{build_directions, build_directions_from_lines};
 pub use matrix_wrapper::{MetroDirection, MetroInterchange};
-pub use metro_lines::MetroLines;
 
 #[cfg(test)]
 mod test_definitions {

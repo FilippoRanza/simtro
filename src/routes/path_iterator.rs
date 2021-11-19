@@ -1,17 +1,17 @@
 //!
-//! This module implement the path iterator. Given a successor
-//! matrix the code in this module defines an iterator that
-//! returns, in order, all the nodes of the graph from node A
-//! to node B. A and B are included in the iteration, as first
-//! and last items.
+//! This module implement the path iterator. Given a successor 
+//! matrix the code in this module defines an iterator that 
+//! returns, in order, all the nodes of the graph from node A 
+//! to node B. A and B are included in the iteration, as first 
+//! and last items. 
 
 use super::Mat;
 
 use std::collections::HashSet;
 
-/// PathIterator, given the successor matrix returns
-/// all the nodes in path from node A to node B. A will
-/// always be the first item and be will always be the last.
+/// PathIterator, given the successor matrix returns 
+/// all the nodes in path from node A to node B. A will 
+/// always be the first item and be will always be the last. 
 pub struct PathIterator<'a> {
     curr: usize,
     end: usize,
@@ -20,8 +20,8 @@ pub struct PathIterator<'a> {
 }
 
 impl<'a> PathIterator<'a> {
-    /// Initialize the struct. Specify the start node, the end node
-    /// and the successor matrix.
+    /// Initialize the struct. Specify the start node, the end node 
+    /// and the successor matrix. 
     pub fn new(curr: usize, end: usize, next_mat: &'a Mat) -> Self {
         Self {
             curr,
@@ -31,12 +31,12 @@ impl<'a> PathIterator<'a> {
         }
     }
 
-    /// Directly converts this iterator into a vector
+    /// Directly converts this iterator into a vector 
     pub fn to_vector(self) -> Vec<usize> {
         self.collect()
     }
 
-    /// Directly converts this iterator into a set
+    /// Directly converts this iterator into a set 
     pub fn to_set(self) -> HashSet<usize> {
         self.collect()
     }
