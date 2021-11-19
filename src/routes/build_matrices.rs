@@ -23,7 +23,7 @@ impl PathMatrix {
         dist_mat: &Array2<T>,
         terminus: &[(usize, usize)],
     ) -> Self {
-        let metro_lines = lines::MetroLines::new(next_mat, terminus);
+        let metro_lines = lines::MetroLinesSet::new(next_mat, terminus);
         let ipm = interchange_path::build_interchange_path_matrix(next_mat, &metro_lines);
         let mdm = metro_direction::build_metro_direction(next_mat, dist_mat, &metro_lines, &ipm);
         Self { ipm, mdm }

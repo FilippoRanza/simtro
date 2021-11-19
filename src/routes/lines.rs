@@ -23,12 +23,12 @@ type Set<'a> = &'a Line;
 /// From this struct is also possible to get two iterators. The first 
 /// one returns all the couples terminus, line. The second return all 
 /// the unique couples line A, line B without repetitions. 
-pub struct MetroLines<'a> {
+pub struct MetroLinesSet<'a> {
     terminus: &'a [(usize, usize)],
     lines: Vec<Line>,
 }
 
-impl<'a> MetroLines<'a> {
+impl<'a> MetroLinesSet<'a> {
     /// Initialize Line data structure. Start from the successor matrix 
     /// and the terminus list. Order inside the list and order between station is 
     /// irrelevant. 
@@ -37,7 +37,7 @@ impl<'a> MetroLines<'a> {
             .iter()
             .map(|(t1, t2)| PathIterator::new(*t1, *t2, next).to_set())
             .collect();
-        MetroLines { terminus, lines }
+        MetroLinesSet { terminus, lines }
     }
 
     /// Tell if station s1 and station s2 are on the same metro line or not. 
@@ -137,7 +137,7 @@ mod test {
         */
         let next = test_definitions::make_next_matrix();
         let terminus = test_definitions::make_terminus();
-        let metro_lines = MetroLines::new(&next, &terminus);
+        let metro_lines = MetroLinesSet::new(&next, &terminus);
         let lines = metro_lines.lines;
         let correct_line_1 = HashSet::from([0, 1, 2, 5, 6]);
         let correct_line_2 = HashSet::from([4, 3, 2, 7, 8]);
@@ -153,7 +153,7 @@ mod test {
         */
         let next = test_definitions::make_next_matrix();
         let terminus = test_definitions::make_terminus();
-        let metro_lines = MetroLines::new(&next, &terminus);
+        let metro_lines = MetroLinesSet::new(&next, &terminus);
         let line_one = [0, 1, 2, 5, 6];
         let line_two = [4, 3, 2, 7, 8];
         for i in &line_one {
@@ -181,7 +181,7 @@ mod test {
     fn test_find_interchanges() {
         let next = test_definitions::make_next_matrix();
         let term = test_definitions::make_terminus();
-        let lines = MetroLines::new(&next, &term);
+        let lines = MetroLinesSet::new(&next, &term);
         let interchanges = lines.find_interchanges();
         let correct: HashSet<usize> = test_definitions::make_interchanges().into_iter().collect();
         assert_eq!(interchanges, correct);

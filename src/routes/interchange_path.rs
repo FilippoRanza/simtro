@@ -19,7 +19,7 @@ use std::collections::HashSet;
 /// and the interchanges list. 
 /// For the implementation the order of the interchanges, order of terminus and relative 
 /// order in station in the terminus couple is irrelevant. 
-pub fn build_interchange_path_matrix(next: &Mat, lines: &lines::MetroLines) -> Mat {
+pub fn build_interchange_path_matrix(next: &Mat, lines: &lines::MetroLinesSet) -> Mat {
     let interchanges = lines.find_interchanges();
     let mut output = matrix_utils::zeros_as(next);
 
@@ -55,7 +55,7 @@ mod test {
     fn test_build_interchange_path_matrix() {
         let next = test_definitions::make_next_matrix();
         let terminus = test_definitions::make_terminus();
-        let lines = lines::MetroLines::new(&next, &terminus);
+        let lines = lines::MetroLinesSet::new(&next, &terminus);
 
         let ipm = build_interchange_path_matrix(&next, &lines);
         let correct = test_definitions::make_correct_interchange_path();

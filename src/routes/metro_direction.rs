@@ -6,7 +6,7 @@
 use ndarray::Array2;
 use num_traits::PrimInt;
 
-use super::lines::MetroLines;
+use super::lines::MetroLinesSet;
 use super::Mat;
 
 use crate::utils::matrix_utils;
@@ -28,7 +28,7 @@ use crate::utils::matrix_utils;
 pub fn build_metro_direction<T: PrimInt>(
     next: &Mat,
     dist: &Array2<T>,
-    lines: &MetroLines,
+    lines: &MetroLinesSet,
     interchange_path_matrix: &Mat,
 ) -> Mat {
     let output = matrix_utils::zeros_as(next);
@@ -38,7 +38,7 @@ pub fn build_metro_direction<T: PrimInt>(
 
 /// Set direction for station on the same line 
 fn set_in_line_directions<T: PrimInt>(
-    lines: &MetroLines,
+    lines: &MetroLinesSet,
     dist: &Array2<T>,
     mut dir_mat: Mat,
 ) -> Mat {
@@ -54,7 +54,7 @@ fn set_in_line_directions<T: PrimInt>(
 }
 
 /// Set direction for stations on different lines 
-fn set_cross_line_directions(lines: &MetroLines, ipm: &Mat, mut dir_mat: Mat) -> Mat {
+fn set_cross_line_directions(lines: &MetroLinesSet, ipm: &Mat, mut dir_mat: Mat) -> Mat {
     for (line_a, line_b) in lines.cross_line_iter() {
         for a in line_a {
             for b in line_b {
@@ -130,7 +130,7 @@ mod test {
 
         let expected_direction = test_definitions::make_correct_direction_matrix();
 
-        let lines = MetroLines::new(&next, &terminus);
+        let lines = MetroLinesSet::new(&next, &terminus);
 
         let direction = build_metro_direction(&next, &dist, &lines, &interchange_path);
         assert_eq!(direction, expected_direction);
