@@ -23,10 +23,9 @@ impl PathMatrix {
     pub fn init_matrices<T: PrimInt>(
         next_mat: &Mat,
         dist_mat: &Array2<T>,
-        terminus: &[(usize, usize)],
+        metro_lines: &metro_lines::MetroLines<'_>,
     ) -> Self {
-        let metro_lines = metro_lines::MetroLines::from_successor_matrix(next_mat, terminus);
-        let line_set = metro_line_set::MetroLinesSet::from(&metro_lines);
+        let line_set = metro_line_set::MetroLinesSet::from(metro_lines);
         let ipm = interchange_path::build_interchange_path_matrix(next_mat, &line_set);
         let mdm = metro_direction::build_metro_direction(next_mat, dist_mat, &line_set, &ipm);
         Self { ipm, mdm }
@@ -44,7 +43,8 @@ mod test {
         let next = test_definitions::make_next_matrix();
         let dist = test_definitions::make_dist_matrix();
         let term = test_definitions::make_terminus();
-        let path_matrix = PathMatrix::init_matrices(&next, &dist, &term);
+        let metro_lines = metro_lines::MetroLines::from_successor_matrix(&next, &term);
+        let path_matrix = PathMatrix::init_matrices(&next, &dist, &metro_lines);
 
         assert_eq!(
             path_matrix.ipm,

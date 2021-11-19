@@ -32,7 +32,8 @@ mod metro_line_set;
 mod metro_lines;
 mod path_iterator;
 
-pub use build_directions::build_directions;
+pub use metro_lines::MetroLines;
+pub use build_directions::{build_directions, build_directions_from_lines};
 pub use matrix_wrapper::{MetroDirection, MetroInterchange};
 
 #[cfg(test)]

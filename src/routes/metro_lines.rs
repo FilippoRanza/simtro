@@ -18,6 +18,8 @@ impl<'a> MetroLines<'a> {
     /// Automatically build lines from the successor matrix
     /// and the teminus couples. A metro line is automatically
     /// considered the shortest path between the to terminus stations.
+    /// The path for the line defined from terminus (T1, T2) is
+    /// always the path from T1 to T2.
     pub fn from_successor_matrix(next: &Mat, terminus: &'a [(usize, usize)]) -> Self {
         let lines = terminus
             .iter()
@@ -32,10 +34,17 @@ impl<'a> MetroLines<'a> {
         Self { lines, terminus }
     }
 
+    /// Return an iterator implementation over
+    /// the available lines. The return order is always the same
+    /// of the given terminus line on object construction.
+    /// The path for the line defined from terminus (T1, T2) is
+    /// always the path from T1 to T2.
     pub fn line_iter(&'a self) -> impl Iterator<Item = &[usize]> + 'a {
         self.lines.iter().map(|l| l.as_slice())
     }
 
+    /// Return a referenc to the given terminus list on object
+    /// construction.
     pub fn get_terminus(&'a self) -> &'a [(usize, usize)] {
         self.terminus
     }
