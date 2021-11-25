@@ -1,6 +1,6 @@
-//! This module implements the code used by the passenger 
-//! to determine the direction (i.e. it must find the correct train 
-//! by terminus) knowing the current passenger's position and the passenger's station. 
+//! This module implements the code used by the passenger
+//! to determine the direction (i.e. it must find the correct train
+//! by terminus) knowing the current passenger's position and the passenger's station.
 //!
 
 use ndarray::Array2;
@@ -11,19 +11,19 @@ use super::Mat;
 
 use crate::utils::matrix_utils;
 
-/// Build the metro direction matrix. Suppose that there is a passenger that need to 
-/// go 
-/// from station A to station B, station A is on line 1 that has its terminus as 
-/// stations T1 and T2. 
-/// The Metro Direction Matrix tells in which direction (from T1 to 
-/// T2 or from T2 to T1) goes the train 
-/// that will bring the passenger to B if 
-/// B is on line 1, or to the next interchange if B is on another line. Entry 
-/// *AB* is in this case either T1 or T2. 
-/// Take in input the successor matrix, the distance matrix both from 
-/// [`super::all_shortest_path::all_shortest_path`], 
-/// terminus list and the interchange path matrix from 
-/// [`super::interchange_path::build_interchange_path_matrix`] 
+/// Build the metro direction matrix. Suppose that there is a passenger that need to
+/// go
+/// from station A to station B, station A is on line 1 that has its terminus as
+/// stations T1 and T2.
+/// The Metro Direction Matrix tells in which direction (from T1 to
+/// T2 or from T2 to T1) goes the train
+/// that will bring the passenger to B if
+/// B is on line 1, or to the next interchange if B is on another line. Entry
+/// *AB* is in this case either T1 or T2.
+/// Take in input the successor matrix, the distance matrix both from
+/// [`super::all_shortest_path::all_shortest_path`],
+/// terminus list and the interchange path matrix from
+/// [`super::interchange_path::build_interchange_path_matrix`]
 pub fn build_metro_direction<T: PrimInt>(
     next: &Mat,
     dist: &Array2<T>,
@@ -35,7 +35,7 @@ pub fn build_metro_direction<T: PrimInt>(
     set_cross_line_directions(&lines, interchange_path_matrix, output)
 }
 
-/// Set direction for station on the same line 
+/// Set direction for station on the same line
 fn set_in_line_directions<T: PrimInt>(
     lines: &MetroLinesSet,
     dist: &Array2<T>,
@@ -52,7 +52,7 @@ fn set_in_line_directions<T: PrimInt>(
     dir_mat
 }
 
-/// Set direction for stations on different lines 
+/// Set direction for stations on different lines
 fn set_cross_line_directions(lines: &MetroLinesSet, ipm: &Mat, mut dir_mat: Mat) -> Mat {
     for (line_a, line_b) in lines.cross_line_iter() {
         for a in line_a {
@@ -65,13 +65,13 @@ fn set_cross_line_directions(lines: &MetroLinesSet, ipm: &Mat, mut dir_mat: Mat)
     dir_mat
 }
 
-/// This function knowing the distance matrix (from 
-/// [`super::all_shortest_path::all_shortest_path`]), 
-/// the 
-/// terminus couple (irrelevant order) the start end the destination 
-/// returns the direction that passengers needs to follow to go from station start 
-/// to station dest. It assumes 
-/// that start and dest are on the same line. 
+/// This function knowing the distance matrix (from
+/// [`super::all_shortest_path::all_shortest_path`]),
+/// the
+/// terminus couple (irrelevant order) the start end the destination
+/// returns the direction that passengers needs to follow to go from station start
+/// to station dest. It assumes
+/// that start and dest are on the same line.
 fn find_closer<T: PrimInt>(
     dist: &Array2<T>,
     t1: usize,
@@ -92,12 +92,12 @@ fn find_closer<T: PrimInt>(
     }
 }
 
-/// This function identifies the direction the passenger must 
-/// follow to reach from station start (that is on one line) station 
-/// dst that is on another line. The direction set by this function is 
-/// the direction required to reach the next interchange to reach the destination. 
-/// Takes in input the start station, the destination station, the interchange 
-/// path matrix and the current direction matrix. 
+/// This function identifies the direction the passenger must
+/// follow to reach from station start (that is on one line) station
+/// dst that is on another line. The direction set by this function is
+/// the direction required to reach the next interchange to reach the destination.
+/// Takes in input the start station, the destination station, the interchange
+/// path matrix and the current direction matrix.
 fn get_interchange_direction(
     start: usize,
     dst: usize,
