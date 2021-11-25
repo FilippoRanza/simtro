@@ -30,6 +30,17 @@ impl PathMatrix {
         let mdm = metro_direction::build_metro_direction(next_mat, dist_mat, &line_set, &ipm);
         Self { ipm, mdm }
     }
+
+    pub fn fast_init_matrices<T: PrimInt>(
+        next_mat: &Mat,
+        dist_mat: &Array2<T>,
+        metro_lines: &metro_lines::MetroLines<'_>,
+    ) -> Self {
+        let line_set = metro_line_set::MetroLinesSet::from(metro_lines);
+        let ipm = interchange_path::fast_build_interchange_path_matrix(next_mat, &line_set);
+        let mdm = metro_direction::build_metro_direction(next_mat, dist_mat, &line_set, &ipm);
+        Self { ipm, mdm }
+    }
 }
 
 #[cfg(test)]

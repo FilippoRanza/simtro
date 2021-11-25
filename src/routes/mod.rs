@@ -36,6 +36,19 @@ pub use build_directions::{build_directions, build_directions_from_lines};
 pub use matrix_wrapper::{MetroDirection, MetroInterchange};
 pub use metro_lines::MetroLines;
 
+
+#[cfg(test)]
+pub mod test_exports {
+
+    use super::*;
+
+    pub fn fast_ipm_build(next: &Mat, lines: &metro_line_set::MetroLinesSet) {
+        interchange_path::fast_build_interchange_path_matrix(next, lines);
+    }
+
+}
+
+
 #[cfg(test)]
 mod test_definitions {
 

@@ -33,6 +33,7 @@ pub fn build_directions<'a, T: PrimInt + Default>(
     )
 }
 
+
 /// Construct the [`super::matrix_wrapper::MetroDirection`] 
 /// and [`super::matrix_wrapper::MetroInterchange`] 
 /// object knowing the adjacent matrix of the network and the metro 
