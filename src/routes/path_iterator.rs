@@ -7,7 +7,6 @@
 
 use super::Mat;
 
-use std::collections::HashSet;
 
 /// PathIterator, given the successor matrix returns
 /// all the nodes in path from node A to node B. A will
@@ -36,10 +35,7 @@ impl<'a> PathIterator<'a> {
         self.collect()
     }
 
-    /// Directly converts this iterator into a set
-    pub fn to_set(self) -> HashSet<usize> {
-        self.collect()
-    }
+
 }
 
 impl<'a> Iterator for PathIterator<'a> {

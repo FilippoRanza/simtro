@@ -8,11 +8,9 @@
 use std::collections::HashSet;
 
 use crate::utils::cross_index_iterator;
-use crate::utils::hash_set;
 
 use super::metro_lines::MetroLines;
-use super::path_iterator::PathIterator;
-use super::Mat;
+
 
 /// Just for brevity
 type Line = HashSet<usize>;
