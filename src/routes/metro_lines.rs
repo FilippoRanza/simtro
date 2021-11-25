@@ -1,25 +1,25 @@
-//! Keep track of the metro lines. If it is possible
-//! to determine the metro lines from the shortest path
-//! this module can be used to automatically construct them.
+//! Keep track of the metro lines. If it is possible 
+//! to determine the metro lines from the shortest path 
+//! this module can be used to automatically construct them. 
 
 use super::path_iterator::PathIterator;
 use super::Mat;
 
-/// Struct used to hold information about
-/// the metro lines. This struct can be automatically
-/// generated of given as input to the tools.
-/// This struct keeps the information about
+/// Struct used to hold information about 
+/// the metro lines. This struct can be automatically 
+/// generated of given as input to the tools. 
+/// This struct keeps the information about 
 pub struct MetroLines<'a> {
     lines: Vec<Vec<usize>>,
     terminus: &'a [(usize, usize)],
 }
 
 impl<'a> MetroLines<'a> {
-    /// Automatically build lines from the successor matrix
-    /// and the terminus couples. A metro line is automatically
-    /// considered the shortest path between the to terminus stations.
-    /// The path for the line defined from terminus (T1, T2) is
-    /// always the path from T1 to T2.
+    /// Automatically build lines from the successor matrix 
+    /// and the terminus couples. A metro line is automatically 
+    /// considered the shortest path between the to terminus stations. 
+    /// The path for the line defined from terminus (T1, T2) is 
+    /// always the path from T1 to T2. 
     pub fn from_successor_matrix(next: &Mat, terminus: &'a [(usize, usize)]) -> Self {
         let lines = terminus
             .iter()
@@ -28,23 +28,23 @@ impl<'a> MetroLines<'a> {
         Self { lines, terminus }
     }
 
-    /// Build object from pre-build lines. Useful if the lines cannot be generated
-    /// automatically from the shortest path.
+    /// Build object from pre-build lines. Useful if the lines cannot be generated 
+    /// automatically from the shortest path. 
     pub fn from_given_lines(lines: Vec<Vec<usize>>, terminus: &'a [(usize, usize)]) -> Self {
         Self { lines, terminus }
     }
 
-    /// Return an iterator implementation over
-    /// the available lines. The return order is always the same
-    /// of the given terminus line on object construction.
-    /// The path for the line defined from terminus (T1, T2) is
-    /// always the path from T1 to T2.
+    /// Return an iterator implementation over 
+    /// the available lines. The return order is always the same 
+    /// of the given terminus line on object construction. 
+    /// The path for the line defined from terminus (T1, T2) is 
+    /// always the path from T1 to T2. 
     pub fn line_iter(&'a self) -> impl Iterator<Item = &[usize]> + 'a {
         self.lines.iter().map(|l| l.as_slice())
     }
 
-    /// Return a reference to the given terminus list on object
-    /// construction.
+    /// Return a reference to the given terminus list on object 
+    /// construction. 
     pub fn get_terminus(&'a self) -> &'a [(usize, usize)] {
         self.terminus
     }

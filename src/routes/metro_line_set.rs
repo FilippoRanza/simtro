@@ -1,9 +1,9 @@
 //!
-//! Manage the metro system line. This auxiliary module is designed to
-//! help the construction of the interchange path matrix and the direction matrix.
-//! Line construction performed by this module is purely speculative: it considers
-//! a line as the shortest path between two terminus station. The algorithm works correctly if this
-//! condition holds.
+//! Manage the metro system line. This auxiliary module is designed to 
+//! help the construction of the interchange path matrix and the direction matrix. 
+//! Line construction performed by this module is purely speculative: it considers 
+//! a line as the shortest path between two terminus station. The algorithm works correctly if this 
+//! condition holds. 
 
 use std::collections::HashSet;
 
@@ -12,24 +12,24 @@ use crate::utils::cross_index_iterator;
 use super::metro_lines::MetroLines;
 
 
-/// Just for brevity
+/// Just for brevity 
 type Line = HashSet<usize>;
 
-/// Just for brevity
+/// Just for brevity 
 type Set<'a> = &'a Line;
 
-/// Helper struct used to determine if
-/// two stations are on the same line or not.
-/// From this struct is also possible to get two iterators. The first
-/// one returns all the couples terminus, line. The second return all
-/// the unique couples line A, line B without repetitions.
+/// Helper struct used to determine if 
+/// two stations are on the same line or not. 
+/// From this struct is also possible to get two iterators. The first 
+/// one returns all the couples terminus, line. The second return all 
+/// the unique couples line A, line B without repetitions. 
 pub struct MetroLinesSet<'a> {
     terminus: &'a [(usize, usize)],
     lines: Vec<Line>,
 }
 
 impl<'a> MetroLinesSet<'a> {
-    /// Tell if station s1 and station s2 are on the same metro line or not.
+    /// Tell if station s1 and station s2 are on the same metro line or not. 
     pub fn is_same_line(&self, s1: usize, s2: usize) -> bool {
         for line in &self.lines {
             if line.contains(&s1) && line.contains(&s2) {
@@ -39,9 +39,9 @@ impl<'a> MetroLinesSet<'a> {
         false
     }
 
-    /// Return an IntoIterator that iterates through the couple
-    /// (start, end) with the associated line station. start and end
-    /// are inside the object.
+    /// Return an IntoIterator that iterates through the couple 
+    /// (start, end) with the associated line station. start and end 
+    /// are inside the object. 
     pub fn line_iterator(&'a self) -> impl IntoIterator<Item = LineItem<'a>> {
         self.terminus
             .iter()
@@ -49,13 +49,13 @@ impl<'a> MetroLinesSet<'a> {
             .map(|t| LineItem::from_tuple(t))
     }
 
-    /// Iterate though all the unique couple of lines. Unique means that
-    /// if couple (a, b) is returned the iterator will never generate couple (b, a).
+    /// Iterate though all the unique couple of lines. Unique means that 
+    /// if couple (a, b) is returned the iterator will never generate couple (b, a). 
     pub fn cross_line_iter(&'a self) -> impl IntoIterator<Item = (Set<'a>, Set<'a>)> {
         CrossLineIterator::new(&self.lines)
     }
 
-    /// Find interchanges between the lines in the metro network
+    /// Find interchanges between the lines in the metro network 
     pub fn find_interchanges(&self) -> HashSet<usize> {
         self.cross_line_iter()
             .into_iter()
@@ -67,9 +67,9 @@ impl<'a> MetroLinesSet<'a> {
 }
 
 impl<'a, 'b: 'a> From<&'b MetroLines<'a>> for MetroLinesSet<'b> {
-    /// Initialize Line data structure. Start from the successor matrix
-    /// and the terminus list. Order inside the list and order between station is
-    /// irrelevant.
+    /// Initialize Line data structure. Start from the successor matrix 
+    /// and the terminus list. Order inside the list and order between station is 
+    /// irrelevant. 
 
     fn from(metro_lines: &'b MetroLines<'a>) -> Self {
         let lines = metro_lines
@@ -81,17 +81,17 @@ impl<'a, 'b: 'a> From<&'b MetroLines<'a>> for MetroLinesSet<'b> {
     }
 }
 
-/// struct used to hold the output couple from the line iterator. Here just to give
-/// more
-/// order then a simple tuple.
+/// struct used to hold the output couple from the line iterator. Here just to give 
+/// more 
+/// order then a simple tuple. 
 pub struct LineItem<'a> {
     pub terminus: (usize, usize),
     pub stations: Set<'a>,
 }
 
 impl<'a> LineItem<'a> {
-    /// Initialize data structure. The input is data from a zip iterator. Only for in module
-    /// usage.
+    /// Initialize data structure. The input is data from a zip iterator. Only for in module 
+    /// usage. 
     fn from_tuple(t: (&(usize, usize), &'a HashSet<usize>)) -> Self {
         let ((t1, t2), stations) = t;
         let terminus = (*t1, *t2);
@@ -99,17 +99,17 @@ impl<'a> LineItem<'a> {
     }
 }
 
-/// Implement the unique couple line iterator.
-/// The actual index iterator is not implemented here. See
-/// [`crate::utils::cross_index_iterator::CrossIndexIterator`]
-/// for that.
+/// Implement the unique couple line iterator. 
+/// The actual index iterator is not implemented here. See 
+/// [`crate::utils::cross_index_iterator::CrossIndexIterator`] 
+/// for that. 
 pub struct CrossLineIterator<'a> {
     lines: &'a Vec<HashSet<usize>>,
     iterator: cross_index_iterator::CrossIndexIterator,
 }
 
 impl<'a> CrossLineIterator<'a> {
-    /// Initialize struct. Takes as input the lines list.
+    /// Initialize struct. Takes as input the lines list. 
     fn new(lines: &'a Vec<HashSet<usize>>) -> Self {
         let iterator = cross_index_iterator::CrossIndexIterator::new(lines.len());
         Self { lines, iterator }
@@ -118,7 +118,7 @@ impl<'a> CrossLineIterator<'a> {
 
 impl<'a> Iterator for CrossLineIterator<'a> {
     type Item = (Set<'a>, Set<'a>);
-    /// Iterate though all unique list couples.
+    /// Iterate though all unique list couples. 
     fn next(&mut self) -> Option<Self::Item> {
         let (i, j) = self.iterator.next()?;
         let i = &self.lines[i];

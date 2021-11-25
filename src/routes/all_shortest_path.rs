@@ -1,21 +1,21 @@
-//! Floyd–Warshall Algorithm implementation.
-//! See: <https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm>
+//! Floyd–Warshall Algorithm implementation. 
+//! See: <https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm> 
 //!
 use ndarray::Array2;
 use num_traits::PrimInt;
 
 use crate::utils::matrix_utils::zeros;
 
-/// Simple type alias. Useful for shorter function signature.
-/// The first item is the distance matrix, the second is the
-/// successor matrix.
+/// Simple type alias. Useful for shorter function signature. 
+/// The first item is the distance matrix, the second is the 
+/// successor matrix. 
 type FWResult<T> = (Array2<T>, Array2<usize>);
 
-/// Floyd-Warshall Algorithm implementation. The input matrix
-/// is expected to be the square adjacent matrix of the graph.
-/// When there is no direct connection between two nodes,
-/// the value associated is T::max_value().
-/// Function assumes that g is a square matrix. Panics otherwise.
+/// Floyd-Warshall Algorithm implementation. The input matrix 
+/// is expected to be the square adjacent matrix of the graph. 
+/// When there is no direct connection between two nodes, 
+/// the value associated is T::max_value(). 
+/// Function assumes that g is a square matrix. Panics otherwise. 
 pub fn all_shortest_path<T: PrimInt + Default>(g: Array2<T>) -> FWResult<T> {
     let (mut dist, mut next) = init_matrixes(g);
     let n = dist.nrows();
@@ -32,8 +32,8 @@ pub fn all_shortest_path<T: PrimInt + Default>(g: Array2<T>) -> FWResult<T> {
     (dist, next)
 }
 
-/// The update condition of the Algorithm. Required to avoid
-/// an overflow sum if adj[i, h] or adj[h, j] is T::max_value()
+/// The update condition of the Algorithm. Required to avoid 
+/// an overflow sum if adj[i, h] or adj[h, j] is T::max_value() 
 fn update_condition<T: PrimInt + Default>(ij: T, ih: T, hj: T) -> bool {
     // avoid overflow sum with infinity value.
     if ih == T::max_value() || hj == T::max_value() {
@@ -43,7 +43,7 @@ fn update_condition<T: PrimInt + Default>(ij: T, ih: T, hj: T) -> bool {
     }
 }
 
-/// Setup the successor matrix with the graph's arcs.
+/// Setup the successor matrix with the graph's arcs. 
 fn init_matrixes<T: PrimInt + Default>(g: Array2<T>) -> FWResult<T> {
     let mut next = zeros(g.nrows());
     for ((i, j), w) in g.indexed_iter() {

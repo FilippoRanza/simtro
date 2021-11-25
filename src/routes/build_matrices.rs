@@ -1,5 +1,5 @@
-//! This module perform Metro Destination Matrix and
-//! Interchange Path Matrix initialization
+//! This module perform Metro Destination Matrix and 
+//! Interchange Path Matrix initialization 
 
 use super::interchange_path;
 use super::metro_direction;
@@ -10,16 +10,16 @@ use super::Mat;
 use ndarray::Array2;
 use num_traits::PrimInt;
 
-/// Store the just generated Metro Destination Matrix and
-/// the Interchange Path Matrix
+/// Store the just generated Metro Destination Matrix and 
+/// the Interchange Path Matrix 
 pub struct PathMatrix {
     pub mdm: Mat,
     pub ipm: Mat,
 }
 
 impl PathMatrix {
-    /// Build the Matrices using the code in [`super::metro_direction`] and
-    /// [`super::interchange_path`]
+    /// Build the Matrices using the code in [`super::metro_direction`] and 
+    /// [`super::interchange_path`] 
     pub fn init_matrices<T: PrimInt>(
         next_mat: &Mat,
         dist_mat: &Array2<T>,
