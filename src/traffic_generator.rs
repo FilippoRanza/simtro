@@ -1,23 +1,45 @@
+//! This module define the TrafficGenerator trait and provide 
+//! a simple implementation 
+
 use rand;
 use rand_distr::{Distribution, Poisson};
 use splines::{Interpolation, Key, Spline};
 
+/// Allow to change probability type in no-time
 type Node = f64;
+/// Allow to change step type in no-time 
 type Int = u32;
 
+/// Define default value for head and tail anchors if missing
 const DEFAULT_NODE_VALUE: Node = 1.0;
+
+/// Minute in an hour
 const MINUTE_IN_HOUR: Int = 60;
 
+
+/// A type implementing this trait can 
+/// be used to generate the step by step 
+/// traffic from one station to a specific 
+/// destination. 
 pub trait TrafficGenerator {
+
+    /// Return number of passenger arriving at the station
+    /// at request step. This are passengers going to a 
+    /// specific destination.
     fn next_traffic_matrix(&self, step: Int) -> Int;
 }
 
+/// Simple traffic generator based 
+/// on spline (to generate the step wise probability)
+/// and Poisson distribution to get the random number of 
+/// passenger per step.
 pub struct SimpleTrafficGenerator {
     spline: Spline<Node, Node>,
     scale: Node,
 }
 
 impl SimpleTrafficGenerator {
+    /// Initialize struct from given configuration.
     pub fn new(conf: SimpleTrafficGeneratorConfig) -> Self {
         let steps = get_time_steps(&conf);
         let anchors = convert_anchor_vector(conf.anchors, conf.time_begin, conf.time_end, steps);
@@ -26,12 +48,14 @@ impl SimpleTrafficGenerator {
         Self { spline, scale }
     }
 
+    // get the average number of passenger at given step.
     fn get_passenger_probability_at(&self, step: Int) -> Node {
         self.spline.sample(step as Node).unwrap() * self.scale
     }
 }
 
 impl TrafficGenerator for SimpleTrafficGenerator {
+    
     fn next_traffic_matrix(&self, step: Int) -> Int {
         let lambda = self.get_passenger_probability_at(step);
         let passengers = sample_poisson(lambda);
@@ -39,11 +63,15 @@ impl TrafficGenerator for SimpleTrafficGenerator {
     }
 }
 
+/// compute the scale factor that will ensure that the 
+/// series of lambdas generte by get_passenger_probability is 
+/// always equal to traffic (up to numberical errors).
 fn get_scale_value(spline: &Spline<Node, Node>, end: Int, traffic: Int) -> Node {
     let magn = integrate_spline(spline, end);
     (traffic as Node) / magn
 }
 
+/// return the sum of all the values 
 fn integrate_spline(spline: &Spline<Node, Node>, end: Int) -> Node {
     (0..end)
         .map(|i| i as Node)
@@ -51,15 +79,21 @@ fn integrate_spline(spline: &Spline<Node, Node>, end: Int) -> Node {
         .sum()
 }
 
+/// convert anchor points into a spline object
 fn spline_from_anchors(anchors: Vec<(Node, Node)>) -> Spline<Node, Node> {
     let key_iter = anchors.into_iter().map(key_from_tuple).collect();
     Spline::from_vec(key_iter)
 }
 
+/// Build a spline key from a tuple
 fn key_from_tuple<T, V>(t: (T, V)) -> Key<T, V> {
     Key::new(t.0, t.1, Interpolation::Cosine)
 }
 
+/// Add head and tail keys if required,
+/// scales and translate the time value 
+/// in order that the first key is the first
+/// step and last key is the last step.
 fn convert_anchor_vector(
     anchors: Vec<(Int, Node)>,
     time_begin: Int,
@@ -71,6 +105,8 @@ fn convert_anchor_vector(
     scale_vector(anchors, time_begin, time_end, steps)
 }
 
+/// Perform time scale and translation so 
+/// time of anchors[0] = 0 and time of anchors[last] = tf.
 fn scale_vector<T>(anchors: Vec<(Int, T)>, t0: Int, tf: Int, step_count: Int) -> Vec<(Node, T)> {
     let scale = (step_count as Node) / ((tf - t0) as Node);
     anchors
@@ -81,14 +117,22 @@ fn scale_vector<T>(anchors: Vec<(Int, T)>, t0: Int, tf: Int, step_count: Int) ->
         .collect()
 }
 
+/// set an anchor point at t0 with default value (1.0) if an anchor at t0 is 
+/// not present in the list.
 fn set_first(anchors: Vec<(Int, Node)>, time_begin: Int) -> Vec<(Int, Node)> {
     set_value_at_index_if_time_missing(anchors, time_begin, |v, t| v.insert(0, t), |v| v.first())
 }
 
+
+/// set an anchor point at tf with default value (1.0) if an anchor at tf is 
+/// not present in the list.
 fn set_last(anchors: Vec<(Int, Node)>, time_end: Int) -> Vec<(Int, Node)> {
     set_value_at_index_if_time_missing(anchors, time_end, |v, t| v.push(t), |v| v.last())
 }
 
+/// Set an item in anchors using callback f if the
+/// time value in the result of g is different then time.
+/// If g -> None creates a new vector.
 fn set_value_at_index_if_time_missing<F, G>(
     mut anchors: Vec<(Int, Node)>,
     time: Int,
@@ -109,19 +153,31 @@ where
     }
 }
 
+/// return number of steps knowing end time, begin time and step per minute
 fn get_time_steps(conf: &SimpleTrafficGeneratorConfig) -> Int {
     (conf.time_end - conf.time_begin) * conf.minute_resolution * MINUTE_IN_HOUR
 }
 
+/// create an anchor at given time with default value (1.0)
 fn default_anchor(time: Int) -> (Int, Node) {
     (time, DEFAULT_NODE_VALUE)
 }
 
+/// draw a random number from poisson distribution 
+/// with avg = lambda
 fn sample_poisson(lambda: Node) -> Node {
     let poi = Poisson::new(lambda).unwrap();
     poi.sample(&mut rand::thread_rng())
 }
 
+/// SimpleTrafficGenerator Configuration, contains 
+/// any parameters useful for struct initialization.
+/// A configuration contains the anchor points vector, this vect 
+/// must be sorted by time. 
+/// time_begin and time_end specifies the initial and final hour 
+/// of the day. 
+/// minute_resolution specifies the number of steps per minute.
+/// traffic specifies the total traffic during the n steps.
 pub struct SimpleTrafficGeneratorConfig {
     pub anchors: Vec<(Int, Node)>,
     pub time_begin: Int,
