@@ -26,3 +26,8 @@ pub enum StationState {
 pub struct Railway {
     length: usize,
 }
+
+pub struct RailwayLine {
+    terminus_a: usize,
+    terminus_b: usize,
+}
