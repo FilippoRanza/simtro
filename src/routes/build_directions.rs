@@ -15,11 +15,11 @@ use super::metro_lines;
 /// of terminus. The lines are automatically determined as the
 /// shortest path between the terminal station. Interchanges stations
 /// are computed are the intersection between lines.
-pub fn build_directions<'a, T: PrimInt + Default>(
+pub fn build_directions<T: PrimInt + Default>(
     adj_mat: Array2<T>,
-    terminus: &'a [(usize, usize)],
+    terminus: &'_ [(usize, usize)],
 ) -> (
-    metro_lines::MetroLines<'a>,
+    metro_lines::MetroLines<'_>,
     matrix_wrapper::MetroDirection,
     matrix_wrapper::MetroInterchange,
 ) {
@@ -38,9 +38,9 @@ pub fn build_directions<'a, T: PrimInt + Default>(
 /// object knowing the adjacent matrix of the network and the metro
 /// lines. To use only if the lines cannot be constructed automatically
 /// from the terminus list following the shortest path between the terminus stations.
-pub fn build_directions_from_lines<'a, T: PrimInt + Default>(
+pub fn build_directions_from_lines<T: PrimInt + Default>(
     adj_mat: Array2<T>,
-    metro_lines: &metro_lines::MetroLines<'a>,
+    metro_lines: &metro_lines::MetroLines<'_>,
 ) -> (
     matrix_wrapper::MetroDirection,
     matrix_wrapper::MetroInterchange,

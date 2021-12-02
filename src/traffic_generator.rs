@@ -9,7 +9,7 @@ const DEFAULT_NODE_VALUE: Node = 1.0;
 const MINUTE_IN_HOUR: Int = 60;
 
 pub trait TrafficGenerator {
-    fn next_traffic_matrix<'a>(&'a self, step: Int) -> Int;
+    fn next_traffic_matrix(&self, step: Int) -> Int;
 }
 
 pub struct SimpleTrafficGenerator {
@@ -32,7 +32,7 @@ impl SimpleTrafficGenerator {
 }
 
 impl TrafficGenerator for SimpleTrafficGenerator {
-    fn next_traffic_matrix<'a>(&'a self, step: Int) -> Int {
+    fn next_traffic_matrix(&self, step: Int) -> Int {
         let lambda = self.get_passenger_probability_at(step);
         let passengers = sample_poisson(lambda);
         passengers as Int
@@ -96,7 +96,7 @@ fn set_value_at_index_if_time_missing<F, G>(
     g: G,
 ) -> Vec<(Int, Node)>
 where
-    F: Fn(&mut Vec<(Int, Node)>, (Int, Node)) -> (),
+    F: Fn(&mut Vec<(Int, Node)>, (Int, Node)),
     G: Fn(&Vec<(Int, Node)>) -> Option<&'_ (Int, Node)>,
 {
     if let Some((t, _)) = g(&anchors) {

@@ -45,7 +45,7 @@ impl<'a> MetroLinesSet<'a> {
         self.terminus
             .iter()
             .zip(self.lines.iter())
-            .map(|t| LineItem::from_tuple(t))
+            .map(LineItem::from_tuple)
     }
 
     /// Iterate though all the unique couple of lines. Unique means that
@@ -60,7 +60,7 @@ impl<'a> MetroLinesSet<'a> {
             .into_iter()
             .map(|(a, b)| a.intersection(b))
             .flatten()
-            .map(|i| *i)
+            .copied()
             .collect()
     }
 }
@@ -73,7 +73,7 @@ impl<'a, 'b: 'a> From<&'b MetroLines<'a>> for MetroLinesSet<'b> {
     fn from(metro_lines: &'b MetroLines<'a>) -> Self {
         let lines = metro_lines
             .line_iter()
-            .map(|line| line.iter().map(|i| *i).collect())
+            .map(|line| line.iter().copied().collect())
             .collect();
         let terminus = metro_lines.get_terminus();
         Self { lines, terminus }
@@ -103,13 +103,13 @@ impl<'a> LineItem<'a> {
 /// [`crate::utils::cross_index_iterator::CrossIndexIterator`]
 /// for that.
 pub struct CrossLineIterator<'a> {
-    lines: &'a Vec<HashSet<usize>>,
+    lines: &'a [HashSet<usize>],
     iterator: cross_index_iterator::CrossIndexIterator,
 }
 
 impl<'a> CrossLineIterator<'a> {
     /// Initialize struct. Takes as input the lines list.
-    fn new(lines: &'a Vec<HashSet<usize>>) -> Self {
+    fn new(lines: &'a [HashSet<usize>]) -> Self {
         let iterator = cross_index_iterator::CrossIndexIterator::new(lines.len());
         Self { lines, iterator }
     }

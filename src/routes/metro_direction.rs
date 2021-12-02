@@ -31,8 +31,8 @@ pub fn build_metro_direction<T: PrimInt>(
     interchange_path_matrix: &Mat,
 ) -> Mat {
     let output = matrix_utils::zeros_as(next);
-    let output = set_in_line_directions(&lines, dist, output);
-    set_cross_line_directions(&lines, interchange_path_matrix, output)
+    let output = set_in_line_directions(lines, dist, output);
+    set_cross_line_directions(lines, interchange_path_matrix, output)
 }
 
 /// Set direction for station on the same line

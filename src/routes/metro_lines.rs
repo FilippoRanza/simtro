@@ -23,7 +23,7 @@ impl<'a> MetroLines<'a> {
     pub fn from_successor_matrix(next: &Mat, terminus: &'a [(usize, usize)]) -> Self {
         let lines = terminus
             .iter()
-            .map(|(t1, t2)| PathIterator::new(*t1, *t2, next).to_vector())
+            .map(|(t1, t2)| PathIterator::new(*t1, *t2, next).into_vector())
             .collect();
         Self { lines, terminus }
     }

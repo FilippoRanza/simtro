@@ -30,7 +30,7 @@ impl<'a> PathIterator<'a> {
     }
 
     /// Directly converts this iterator into a vector
-    pub fn to_vector(self) -> Vec<usize> {
+    pub fn into_vector(self) -> Vec<usize> {
         self.collect()
     }
 }

@@ -200,9 +200,9 @@ impl MemoEngine {
 /// Identify the fist interchange node in path from node start to node end.
 fn take_next(start: usize, end: usize, next: &Mat, interchanges: &HashSet<usize>) -> usize {
     PathIterator::new(start, end, next)
-        .filter(|n| interchanges.contains(n))
-        .next()
+        .find(|n| interchanges.contains(n))
         .unwrap()
+        
 }
 
 #[cfg(test)]

@@ -16,7 +16,7 @@ impl UniqueId {
     }
 
     /// Return the next unique id for this instance.
-    pub fn next(&mut self) -> u32 {
+    pub fn next_uid(&mut self) -> u32 {
         let tmp = self.curr;
         self.curr += 1;
         tmp
@@ -25,7 +25,7 @@ impl UniqueId {
     /// Set to the given object's id value to the next
     /// id value for this instance.
     pub fn set_id<T: SetId>(&mut self, t: T) -> T {
-        t.set_id(self.next())
+        t.set_id(self.next_uid())
     }
 
     /// Set to each element of the given iterator the value
@@ -35,9 +35,16 @@ impl UniqueId {
         &'a mut self,
         iter: I,
     ) -> impl Iterator<Item = T> + 'a {
-        iter.map(|t| t.set_id(self.next()))
+        iter.map(|t| t.set_id(self.next_uid()))
     }
 }
+
+impl Default for UniqueId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 
 /// Define the SetId trait used to set the ID to the given object.
 /// For simplicity the object is consumed by this function and returned as

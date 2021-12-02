@@ -27,6 +27,11 @@ impl<N, A> Graph<N, A> {
     pub fn len(&self) -> usize {
         self.nodes.len()
     }
+
+    /// Return true if graph does not contain nodes.
+    pub fn is_empty(&self) -> bool {
+        self.nodes.len() == 0
+    }
 }
 
 /// A wrapper struct to contain the adjacent lists.
