@@ -5,7 +5,12 @@ pub trait StationClass {
     fn is_interchange(&self) -> bool;
 }
 
+/// Define general purpose method for a passenger
+/// station. Trait main usage is to improve 
+/// client code generality.
 pub trait PassengerStation: Send + Sync {
+    
+    /// Add passengers to the station implementation
     fn enter_passenger(&mut self, p: Passenger);
 }
 

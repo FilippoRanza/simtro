@@ -1,18 +1,18 @@
-/*
-   This file contains the Passenger implementation. At the current time
-   it is just an information about the start and stop station combined with a unique id.
-
-   There is also the implementation for the passengere factory. This struct
-   is initialized using a traffic matrix (see traffic_generator.rs)
-   iterates through this matrix and generate the required number of
-   passengers that start from station i to stattion j
-*/
-
+//!
+//!  This module contains the Passenger implementation. At the current time
+//!  it is just an information about the start and stop station combined with a unique id.
+//!  There is also the implementation for the passengere factory. This struct
+//!  is initialized using a traffic matrix (see traffic_generator.rs)
+//!  iterates through this matrix and generate the required number of
+//!  passengers that start from station i to stattion j
+//!
 use crate::station::PassengerStation;
 use crate::traffic_generator::TrafficGenerator;
 use crate::utils;
 use rayon::prelude::*;
 
+/// Passenger struct. Keep information about the 
+/// departure and destionaton station, with an unique id.
 pub struct Passenger {
     id: u32,
     start: usize,
@@ -20,14 +20,17 @@ pub struct Passenger {
 }
 
 impl Passenger {
+    /// Create a new passenger instance.
     fn new(id: u32, start: usize, stop: usize) -> Self {
         Self { id, start, stop }
     }
 
+    /// Check if passenger is at its final destionation
     pub fn is_destination(&self, station: usize) -> bool {
         self.stop == station
     }
 }
+
 
 impl utils::unique_id::SetId for Passenger {
     fn set_id(mut self, id: u32) -> Self {
@@ -36,6 +39,10 @@ impl utils::unique_id::SetId for Passenger {
     }
 }
 
+/// Create new passengers for each station going to each 
+/// station. At each simulation step create passengers 
+/// according to the number given by the traffic generator
+/// implementation.
 pub struct PassengerFactory<T> {
     traffic_generator: Vec<Vec<T>>,
 }
@@ -44,10 +51,12 @@ impl<T> PassengerFactory<T>
 where
     T: TrafficGenerator,
 {
+    /// Initialize factory. T initialization is now handled here.
     pub fn new(traffic_generator: Vec<Vec<T>>) -> Self {
         Self { traffic_generator }
     }
 
+    /// Generate traffic at given step. Borrows mutable the list of all stations.
     pub fn generate_traffic<S: PassengerStation>(&self, step: u32, stations: &mut [S]) {
         self.traffic_generator
             .par_iter()
@@ -56,6 +65,7 @@ where
             .for_each(|(i, (g, s))| Self::build_station_traffic(i, g, s, step));
     }
 
+    /// Create passengers for the given station implementation.
     fn build_station_traffic<S: PassengerStation>(
         index: usize,
         traff_gen: &[T],
