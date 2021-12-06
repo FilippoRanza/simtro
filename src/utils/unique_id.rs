@@ -45,7 +45,6 @@ impl Default for UniqueId {
     }
 }
 
-
 /// Define the SetId trait used to set the ID to the given object.
 /// For simplicity the object is consumed by this function and returned as
 /// output.

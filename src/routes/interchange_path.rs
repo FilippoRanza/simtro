@@ -202,7 +202,6 @@ fn take_next(start: usize, end: usize, next: &Mat, interchanges: &HashSet<usize>
     PathIterator::new(start, end, next)
         .find(|n| interchanges.contains(n))
         .unwrap()
-        
 }
 
 #[cfg(test)]

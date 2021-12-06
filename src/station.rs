@@ -5,17 +5,23 @@ pub trait StationClass {
     fn is_interchange(&self) -> bool;
 }
 
+pub trait PassengerStation: Send + Sync {
+    fn enter_passenger(&mut self, p: Passenger);
+}
+
 pub struct Station {
     state: StationState,
     passengers: Vec<Passenger>,
 }
 
 impl Station {
-    pub fn enter_passenger(&mut self, p: Passenger) {
+    pub fn passengers_to(&mut self, dst: usize) {}
+}
+
+impl PassengerStation for Station {
+    fn enter_passenger(&mut self, p: Passenger) {
         self.passengers.push(p)
     }
-
-    pub fn passengers_to(&mut self, dst: usize) {}
 }
 
 pub enum StationState {

@@ -8,8 +8,10 @@
    passengers that start from station i to stattion j
 */
 
+use crate::station::PassengerStation;
+use crate::traffic_generator::TrafficGenerator;
 use crate::utils;
-use ndarray;
+use rayon::prelude::*;
 
 pub struct Passenger {
     id: u32,
@@ -34,68 +36,38 @@ impl utils::unique_id::SetId for Passenger {
     }
 }
 
-pub struct PassengerFactory<'a> {
-    lambda_matrix: &'a ndarray::Array2<u32>,
-    row: usize,
+pub struct PassengerFactory<T> {
+    traffic_generator: Vec<Vec<T>>,
 }
 
-impl<'a> PassengerFactory<'a> {
-    pub fn new(lambda_matrix: &'a ndarray::Array2<u32>) -> Self {
-        Self {
-            lambda_matrix,
-            row: 0,
-        }
-    }
-}
-
-impl<'a> Iterator for PassengerFactory<'a> {
-    type Item = PassengerGeneratorIterator<'a>;
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.row < self.lambda_matrix.nrows() {
-            let row_iter = self.lambda_matrix.row(self.row).into_iter();
-            let out = Some(PassengerGeneratorIterator::new(row_iter, self.row));
-            self.row += 1;
-            out
-        } else {
-            None
-        }
-    }
-}
-
-type Row<'a> = ndarray::iter::Iter<'a, u32, ndarray::Dim<[usize; 1]>>;
-
-pub struct PassengerGeneratorIterator<'a> {
-    row: Row<'a>,
-    missing: u32,
-    departure: usize,
-    destination: usize,
-}
-
-impl<'a> PassengerGeneratorIterator<'a> {
-    fn new(row: Row<'a>, departure: usize) -> Self {
-        Self {
-            row,
-            departure,
-            missing: 0,
-            destination: 0,
-        }
+impl<T> PassengerFactory<T>
+where
+    T: TrafficGenerator,
+{
+    pub fn new(traffic_generator: Vec<Vec<T>>) -> Self {
+        Self { traffic_generator }
     }
 
-    fn get_station(&mut self) -> Option<usize> {
-        while self.missing == 0 {
-            self.missing = *self.row.next()?;
-            self.destination += 1;
-        }
-        self.missing -= 1;
-        Some(self.destination)
+    pub fn generate_traffic<S: PassengerStation>(&self, step: u32, stations: &mut [S]) {
+        self.traffic_generator
+            .par_iter()
+            .zip(stations.par_iter_mut())
+            .enumerate()
+            .for_each(|(i, (g, s))| Self::build_station_traffic(i, g, s, step));
     }
-}
 
-impl<'a> Iterator for PassengerGeneratorIterator<'a> {
-    type Item = Passenger;
-    fn next(&mut self) -> Option<Self::Item> {
-        let destination = self.get_station()?;
-        Some(Passenger::new(0, self.departure, destination))
+    fn build_station_traffic<S: PassengerStation>(
+        index: usize,
+        traff_gen: &[T],
+        stat: &mut S,
+        step: u32,
+    ) {
+        for (dst, gen) in traff_gen.iter().enumerate() {
+            for _ in 0..gen.next_traffic_flow(step) {
+                let p = Passenger::new(0, index, dst);
+                stat.enter_passenger(p)
+            }
+        }
     }
 }
 
@@ -104,7 +76,17 @@ mod test {
 
     use super::*;
 
-    use ndarray::arr2;
+    impl PassengerStation for Vec<Passenger> {
+        fn enter_passenger(&mut self, p: Passenger) {
+            self.push(p);
+        }
+    }
+
+    impl TrafficGenerator for u32 {
+        fn next_traffic_flow(&self, _step: u32) -> u32 {
+            *self
+        }
+    }
 
     #[test]
     fn test_passenger_count() {
@@ -113,18 +95,15 @@ mod test {
             is correct. Check correct behavior with zero passengers
             to create.
         */
-        let lambda_matrix = arr2(&[[0, 4, 1], [4, 0, 2], [5, 1, 0]]);
-        let mut uid_gen = utils::unique_id::UniqueId::new();
-        let factory = PassengerFactory::new(&lambda_matrix);
-        let mut passengers = Vec::new();
-        for iter in factory {
-            for p in uid_gen.set_id_iter(iter) {
-                passengers.push(p)
-            }
-        }
-        assert_eq!(passengers.len(), 0 + 4 + 1 + 4 + 0 + 2 + 5 + 1 + 0);
-        for (i, p) in passengers.iter().enumerate() {
-            assert_eq!(p.id, i as u32);
-        }
+        let traffic_generator = vec![vec![0, 4, 5], vec![3, 0, 2], vec![1, 2, 0]];
+
+        let mut stations = vec![vec![], vec![], vec![]];
+
+        let pass_factory = PassengerFactory::new(traffic_generator);
+        pass_factory.generate_traffic(0, &mut stations);
+        assert_eq!(stations.len(), 3);
+        assert_eq!(stations[0].len(), 9);
+        assert_eq!(stations[1].len(), 5);
+        assert_eq!(stations[2].len(), 3);
     }
 }
