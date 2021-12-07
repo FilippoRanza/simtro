@@ -11,7 +11,7 @@ use crate::traffic_generator::TrafficGenerator;
 use crate::utils;
 use rayon::prelude::*;
 
-/// Passenger struct. Keep information about the 
+/// Passenger struct. Keep information about the
 /// departure and destionaton station, with an unique id.
 pub struct Passenger {
     id: u32,
@@ -31,7 +31,6 @@ impl Passenger {
     }
 }
 
-
 impl utils::unique_id::SetId for Passenger {
     fn set_id(mut self, id: u32) -> Self {
         self.id = id;
@@ -39,8 +38,8 @@ impl utils::unique_id::SetId for Passenger {
     }
 }
 
-/// Create new passengers for each station going to each 
-/// station. At each simulation step create passengers 
+/// Create new passengers for each station going to each
+/// station. At each simulation step create passengers
 /// according to the number given by the traffic generator
 /// implementation.
 pub struct PassengerFactory<T> {
