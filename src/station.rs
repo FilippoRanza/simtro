@@ -1,3 +1,9 @@
+//! This module contains some trait defining a general 
+//! behavior that a station must implement and offers also 
+//! a simple implementation of those traits.
+
+
+
 use crate::car::Car;
 use crate::passenger::Passenger;
 use crate::routes::{MetroDirection, MetroInterchange};
@@ -16,12 +22,26 @@ pub trait PassengerStation: Send + Sync {
     fn enter_passenger(&mut self, p: Passenger);
 }
 
+/// Board passengers on given train
 pub trait BoardPassengers: Send + Sync {
+    /// Board passenger on given Car. Boarded passengers 
+    /// will no longer be on object
     fn board_passengers(&mut self, c: &mut Car);
 }
 
+/// Land passengers from train to current implementation
+pub trait LandPassenger: Send + Sync {
+    /// Land passenger from given Car in trait implementation.
+    /// Landed train will no longer be inside given car
+    fn land_passenger(&mut self, c: &mut Car);
+}
+
+
+/// Simple station implementation. 
+/// Contains information about the 
+/// station id, MetroDirection and MetroIntechage and 
+/// the passenger list 
 pub struct Station<'a> {
-    state: StationState,
     index: usize,
     direction: &'a MetroDirection,
     interchange: &'a MetroInterchange,
@@ -29,7 +49,6 @@ pub struct Station<'a> {
 }
 
 impl<'a> Station<'a> {
-    pub fn passengers_to(&mut self, dst: usize) {}
 
     fn set_directions(&self, p: Passenger) -> Passenger {
         let dst = p.get_destination();
@@ -61,16 +80,3 @@ impl<'a> BoardPassengers for Station<'a> {
     }
 }
 
-pub enum StationState {
-    Free,
-    Car(usize),
-}
-
-pub struct Railway {
-    length: usize,
-}
-
-pub struct RailwayLine {
-    terminus_a: usize,
-    terminus_b: usize,
-}

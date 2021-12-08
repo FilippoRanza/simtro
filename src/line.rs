@@ -11,16 +11,21 @@ use crate::fleet;
 use crate::station;
 use crate::utils::counter;
 
+use crate::station::BoardPassengers;
+
 /// Control the current state of
 /// a given metro line.
 pub struct Line {
     train_counter: counter::Counter,
     terminus_a: Terminus,
     terminus_b: Terminus,
-    dir: Direction,
+    dir: Railway,
     fleet: fleet::Fleet,
 }
 
+/// Allow to specify if 
+/// direction is from terminus 1 to terminus 2 
+/// or vice versa
 #[derive(Clone, Copy)]
 pub enum LineDirection {
     DirectionA,
@@ -28,6 +33,7 @@ pub enum LineDirection {
 }
 
 impl LineDirection {
+    /// invert direction 
     pub fn swap(&mut self) {
         *self = match self {
             Self::DirectionA => Self::DirectionB,
@@ -35,7 +41,8 @@ impl LineDirection {
         };
     }
 
-    fn choose_direction<'a, T>(&self, t1: T, t2: T) -> T {
+    /// Choose first element if DirectionA, choose second if DirectionB
+    fn choose_direction<T>(&self, t1: T, t2: T) -> T {
         match self {
             Self::DirectionA => t1,
             Self::DirectionB => t2,
@@ -48,7 +55,7 @@ impl Line {
         counter: C,
         terminus_a: Terminus,
         terminus_b: Terminus,
-        dir: Direction,
+        dir: Railway,
         fleet: fleet::Fleet,
     ) -> Self
     where
@@ -63,18 +70,23 @@ impl Line {
         }
     }
 
+    /// Implement a simulation step. Move trains 
+    /// and, if it is possible, start a new train
     pub fn step(&mut self) {
         self.move_train();
         self.start_train();
     }
 
+    /// Board passengers on the train from the current 
+    /// station. 
     pub fn passenger_boarding(&mut self, stats: &mut [station::Station]) {
         for car in self.fleet.in_station_car_iter() {
-            let station = &stats[car.get_current_station()];
-            todo! {}
+            let station = &mut stats[car.get_current_station()];
+            station.board_passengers(car)
         }
     }
 
+    /// Step each train on the line. 
     fn move_train(&mut self) {
         for train in self.fleet.running_cars_iter() {
             if train.run_step() {
@@ -88,17 +100,21 @@ impl Line {
         }
     }
 
+    /// Start train on each direction
     fn start_train(&mut self) {
         self.try_start_new_train(LineDirection::DirectionA);
         self.try_start_new_train(LineDirection::DirectionB);
     }
 
+
+    /// Try to start a train in a given direction
     fn try_start_new_train(&mut self, dir: LineDirection) {
         if self.can_start_new_train(dir) {
             self.start_new_train(dir);
         }
     }
 
+    /// Check if it is possible to start a new train
     fn can_start_new_train(&self, dir: LineDirection) -> bool {
         if !self.train_counter.is_done() {
             return false;
@@ -109,6 +125,7 @@ impl Line {
         self.get_terminus(dir).can_start_new_train()
     }
 
+    /// actually start a train
     fn start_new_train(&mut self, dir: LineDirection) {
         self.get_terminus_mut(dir).add_new_train();
         self.train_counter.step();
@@ -131,15 +148,20 @@ impl Line {
     }
 }
 
-pub struct Direction {
-    line: Vec<Trunk>,
+/// Implement the railway line. A Railway line is made of 
+/// trunks. 
+pub struct Railway {
+    line: Vec<Segment>,
 }
 
-impl Direction {
-    fn new(line: Vec<Trunk>) -> Self {
-        Self { line }
+impl Railway {
+    fn new(line: Vec<Segment>) -> Self {
+        Railway { line }
     }
 
+    /// Check if it is possible to occupy the next trunk (relative to direction) 
+    /// If it is possible perform the actual truck state update and return info 
+    /// about the next step
     fn next_step(&mut self, curr: usize, dir: LineDirection) -> Option<NextStepInfo> {
         if self.is_free(curr, dir) {
             Some(self.update_car_location(curr, dir))
@@ -148,11 +170,13 @@ impl Direction {
         }
     }
 
+    /// Check if the next step is free or not.
     fn is_free(&self, curr: usize, dir: LineDirection) -> bool {
         let next = get_next_trunk(curr, dir);
         self.line[next].is_free(dir)
     }
 
+    /// update truck state: free previous and occupy current.
     fn update_car_location(&mut self, curr: usize, dir: LineDirection) -> NextStepInfo {
         let next = get_next_trunk(curr, dir);
         self.line[next].set_occupied(dir);
@@ -163,13 +187,16 @@ impl Direction {
         }
     }
 
-    fn get_terminus(&self, dir: LineDirection) -> &'_ Trunk {
+
+    /// Get terminus for given direction
+    fn get_terminus(&self, dir: LineDirection) -> &'_ Segment {
         dir.choose_direction(self.line.first().unwrap(), self.line.last().unwrap())
     }
 }
 
+
 struct NextStepInfo {
-    kind: TrunkType,
+    kind: SegmentType,
     time: usize,
 }
 
@@ -183,11 +210,10 @@ fn get_next_trunk(curr: usize, dir: LineDirection) -> usize {
 /// the current number of trains
 /// in the deposit and maximal number
 /// of station in deposit.
-
 pub struct Terminus {
     depo_counter: counter::Counter,
     train_counter: counter::CyclicCounter,
-    state: TrunkStatus,
+    state: SegmentStatus,
 }
 
 impl Terminus {
@@ -199,14 +225,12 @@ impl Terminus {
         Self {
             depo_counter: depo_size.into(),
             train_counter: train_delay.into(),
-            state: TrunkStatus::default(),
+            state: SegmentStatus::default(),
         }
     }
 
     fn can_start_new_train(&self) -> bool {
-        if matches! {self.state, TrunkStatus::Occupied} {
-            false
-        } else if self.depo_counter.is_done() {
+        if matches! {self.state, SegmentStatus::Occupied} || self.depo_counter.is_done() {
             false
         } else {
             !self.train_counter.is_done()
@@ -223,48 +247,51 @@ impl Terminus {
     }
 
     fn train_arrival(&mut self) {
-        self.state = TrunkStatus::Occupied;
+        self.state = SegmentStatus::Occupied;
     }
 
     fn train_departure(&mut self) {
-        self.state = TrunkStatus::Free;
+        self.state = SegmentStatus::Free;
     }
 }
 
-enum Trunk {
-    Single(TrunkInfo),
-    Double(TrunkInfo, TrunkInfo),
+/// A railway segemnt. It can be single, so it allows just 
+/// one car at the time or double so it is possible to have one car 
+/// for direction.
+enum Segment {
+    Single(SegmentInfo),
+    Double(SegmentInfo, SegmentInfo),
 }
 
-impl Trunk {
+impl Segment {
     fn is_free(&self, dir: LineDirection) -> bool {
-        self.choose_trunk_info(dir).is_free()
+        self.choose_segment_info(dir).is_free()
     }
 
     fn set_occupied(&mut self, dir: LineDirection) {
-        self.choose_trunk_info_mut(dir).set_occupied();
+        self.choose_segment_info_mut(dir).set_occupied();
     }
 
     fn set_free(&mut self, dir: LineDirection) {
-        self.choose_trunk_info_mut(dir).set_free();
+        self.choose_segment_info_mut(dir).set_free();
     }
 
     fn get_duration(&self, dir: LineDirection) -> usize {
-        self.choose_trunk_info(dir).get_duration()
+        self.choose_segment_info(dir).get_duration()
     }
 
-    fn get_type(&self, dir: LineDirection) -> TrunkType {
-        self.choose_trunk_info(dir).get_type()
+    fn get_type(&self, dir: LineDirection) -> SegmentType {
+        self.choose_segment_info(dir).get_type()
     }
 
-    fn choose_trunk_info_mut(&mut self, dir: LineDirection) -> &'_ mut TrunkInfo {
+    fn choose_segment_info_mut(&mut self, dir: LineDirection) -> &'_ mut SegmentInfo {
         match self {
             Self::Single(ti) => ti,
             Self::Double(d1, d2) => dir.choose_direction(d1, d2),
         }
     }
 
-    fn choose_trunk_info(&self, dir: LineDirection) -> &'_ TrunkInfo {
+    fn choose_segment_info(&self, dir: LineDirection) -> &'_ SegmentInfo {
         match self {
             Self::Single(ti) => ti,
             Self::Double(d1, d2) => dir.choose_direction(d1, d2),
@@ -272,47 +299,55 @@ impl Trunk {
     }
 }
 
-struct TrunkInfo {
-    kind: TrunkType,
-    stat: TrunkStatus,
+/// Information about a network segment
+/// type of segment, status and duration to
+/// to traverse it 
+struct SegmentInfo {
+    kind: SegmentType,
+    stat: SegmentStatus,
     duration: usize,
 }
 
-impl TrunkInfo {
+impl SegmentInfo {
     fn is_free(&self) -> bool {
-        matches! {self.stat, TrunkStatus::Free}
+        matches! {self.stat, SegmentStatus::Free}
     }
 
     fn set_occupied(&mut self) {
-        self.stat = TrunkStatus::Occupied
+        self.stat = SegmentStatus::Occupied
     }
 
     fn set_free(&mut self) {
-        self.stat = TrunkStatus::Free
+        self.stat = SegmentStatus::Free
     }
 
     fn get_duration(&self) -> usize {
         self.duration
     }
 
-    fn get_type(&self) -> TrunkType {
+    fn get_type(&self) -> SegmentType {
         self.kind
     }
 }
 
+
+/// A railway segment can be a station,
+/// a line connecting stations or a terminus (station 
+/// where a train must change direction)
 #[derive(Clone, Copy)]
-pub enum TrunkType {
+pub enum SegmentType {
     Station,
     Terminus,
     Line,
 }
 
-enum TrunkStatus {
+/// A segment can be free or occupied
+enum SegmentStatus {
     Free,
     Occupied,
 }
 
-impl Default for TrunkStatus {
+impl Default for SegmentStatus {
     fn default() -> Self {
         Self::Free
     }

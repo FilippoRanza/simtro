@@ -30,7 +30,7 @@ impl Passenger {
             start,
             next_dir: 0,
             next_stop: 0,
-            dest: 0,
+            dest,
         }
     }
 
@@ -39,15 +39,23 @@ impl Passenger {
         self.next_stop == station
     }
 
+    /// Set next direction - terminus station - to reach 
+    /// destination
     pub fn set_next_direction(mut self, dir: usize) -> Self {
         self.next_dir = dir;
         self
     }
+
+
+    /// Set next interchange - terminus station - to reach 
+    /// destination
     pub fn set_next_stop(mut self, stop: usize) -> Self {
         self.next_stop = stop;
         self
     }
 
+
+    /// return passenger destination
     pub fn get_destination(&self) -> usize {
         self.dest
     }

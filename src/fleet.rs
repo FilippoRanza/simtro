@@ -1,10 +1,6 @@
 //! Handle cars fleet on the network.
-//! This module is mainly responsable of two things.
-//! 1. Manage trains currently running on the line
-//! 2. Manage trains currently at deposit.
-//! A train is said to be enabled when from the deposit is set on
-//! a running state and it is said to be disabled when from the running state
-//! it set into deposit.
+//! This module is used to manage
+//! trains running on the network.
 
 use crate::car;
 
@@ -19,14 +15,17 @@ impl Fleet {
         Self { running, speed }
     }
 
+    /// Iterate through all possible running trains
     pub fn running_cars_iter(&mut self) -> impl Iterator<Item = &mut car::Car> {
         self.running.iter_mut()
     }
 
+    /// Iterate through all trains currently in a station
     pub fn in_station_car_iter(&mut self) -> impl Iterator<Item = &mut car::Car> {
         self.running_cars_iter().filter(|c| c.in_station())
     }
 
+    /// Add a new train to list of running trains.
     pub fn start_train(&mut self, car: car::Car) {
         self.running.push(car)
     }

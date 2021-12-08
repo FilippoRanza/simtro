@@ -1,7 +1,7 @@
 use crate::line::LineDirection;
 use crate::passenger::Passenger;
 
-use crate::line::TrunkType;
+use crate::line::SegmentType;
 use crate::utils::counter::Counter;
 
 pub struct Car {
@@ -69,18 +69,18 @@ impl Car {
         self.counter.step()
     }
 
-    pub fn next_step(&mut self, value: usize, kind: TrunkType) {
+    pub fn next_step(&mut self, value: usize, kind: SegmentType) {
         self.counter = value.into();
         self.update_state(kind, 45);
     }
 
-    fn update_state(&mut self, kind: TrunkType, next: usize) {
+    fn update_state(&mut self, kind: SegmentType, next: usize) {
         self.state = match kind {
-            TrunkType::Line => CarState::Rail,
-            TrunkType::Station => CarState::Stop(next),
-            TrunkType::Terminus => CarState::Stop(next),
+            SegmentType::Line => CarState::Rail,
+            SegmentType::Station => CarState::Stop(next),
+            SegmentType::Terminus => CarState::Stop(next),
         };
-        if matches! {kind, TrunkType::Terminus} {
+        if matches! {kind, SegmentType::Terminus} {
             self.direction.swap();
         }
     }
