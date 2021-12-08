@@ -3,6 +3,7 @@
 
 pub mod counter;
 pub mod cross_index_iterator;
+pub mod index_list;
 pub mod matrix_utils;
 pub mod unique_id;
 

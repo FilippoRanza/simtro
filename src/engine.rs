@@ -1,4 +1,5 @@
 use crate::car::Car;
+use crate::line;
 use crate::passenger::PassengerFactory;
 use crate::station::Station;
 use crate::traffic_generator::TrafficGenerator;
@@ -6,30 +7,25 @@ use crate::utils::unique_id::UniqueId;
 
 pub fn engine<Tg: TrafficGenerator>(
     steps: u32,
-    tg: Tg,
+    passenger_factory: PassengerFactory<Tg>,
     mut stations: Vec<Station>,
-    mut cars: Vec<Car>,
+    mut lines: Vec<line::Line>,
 ) {
     for step in 0..steps {
-        generate_passengers(step, &tg, &mut stations);
-        move_trains();
-        board_passengers(&mut stations, &mut cars);
+        passenger_factory.generate_traffic(step, &mut stations);
+        move_trains(&mut lines);
+        passenger_boarding(&mut lines, &mut stations);
     }
 }
 
-fn generate_passengers<Tg: TrafficGenerator>(step: u32, tg: &Tg, sts: &mut [Station]) {
-    let matrix = tg.next_traffic_flow(step);
-    let mut uid_gen = UniqueId::new();
-    //let pass_factory = PassengerFactory::new(matrix);
-    //for (stat, pass_iter) in sts.iter_mut().zip(pass_factory) {
-    //    for p in uid_gen.set_id_iter(pass_iter) {
-    //        stat.enter_passenger(p);
-    //    }
-    //}
+fn move_trains(lines: &mut [line::Line]) {
+    lines.iter_mut().for_each(|ln| ln.step())
 }
 
-fn move_trains() {
-    todo! {}
+fn passenger_boarding(lines: &mut [line::Line], stations: &mut [Station]) {
+    lines
+        .iter_mut()
+        .for_each(|ln| ln.passenger_boarding(stations));
 }
 
 fn board_passengers(sts: &mut [Station], cars: &mut [Car]) {

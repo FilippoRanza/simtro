@@ -8,29 +8,26 @@
 
 use crate::car;
 
-struct Fleet {
+pub struct Fleet {
     running: Vec<car::Car>,
-    deposit: Vec<car::Car>,
     speed: usize,
 }
 
 impl Fleet {
-    fn new(deposit: Vec<car::Car>, speed: usize) -> Self {
-        let running = Vec::with_capacity(deposit.len());
-        Self {
-            deposit,
-            running,
-            speed,
-        }
+    fn new(fleet_size: usize, speed: usize) -> Self {
+        let running = Vec::with_capacity(fleet_size);
+        Self { running, speed }
     }
 
-    fn move_cars(&mut self) {
-        for car in self.running.iter_mut() {
-            car.move_car(self.speed);
-        }
+    pub fn running_cars_iter(&mut self) -> impl Iterator<Item = &mut car::Car> {
+        self.running.iter_mut()
     }
 
-    fn start_trains(&mut self) {
-        todo! {}
+    pub fn in_station_car_iter(&mut self) -> impl Iterator<Item = &mut car::Car> {
+        self.running_cars_iter().filter(|c| c.in_station())
+    }
+
+    pub fn start_train(&mut self, car: car::Car) {
+        self.running.push(car)
     }
 }

@@ -9,6 +9,7 @@
 use crate::station::PassengerStation;
 use crate::traffic_generator::TrafficGenerator;
 use crate::utils;
+use crate::utils::index_list;
 use rayon::prelude::*;
 
 /// Passenger struct. Keep information about the
@@ -16,18 +17,39 @@ use rayon::prelude::*;
 pub struct Passenger {
     id: u32,
     start: usize,
-    stop: usize,
+    next_dir: usize,
+    next_stop: usize,
+    dest: usize,
 }
 
 impl Passenger {
     /// Create a new passenger instance.
-    fn new(id: u32, start: usize, stop: usize) -> Self {
-        Self { id, start, stop }
+    fn new(id: u32, start: usize, dest: usize) -> Self {
+        Self {
+            id,
+            start,
+            next_dir: 0,
+            next_stop: 0,
+            dest: 0,
+        }
     }
 
     /// Check if passenger is at its final destionation
     pub fn is_destination(&self, station: usize) -> bool {
-        self.stop == station
+        self.next_stop == station
+    }
+
+    pub fn set_next_direction(mut self, dir: usize) -> Self {
+        self.next_dir = dir;
+        self
+    }
+    pub fn set_next_stop(mut self, stop: usize) -> Self {
+        self.next_stop = stop;
+        self
+    }
+
+    pub fn get_destination(&self) -> usize {
+        self.dest
     }
 }
 
@@ -35,6 +57,12 @@ impl utils::unique_id::SetId for Passenger {
     fn set_id(mut self, id: u32) -> Self {
         self.id = id;
         self
+    }
+}
+
+impl index_list::Indexer for Passenger {
+    fn index(&self) -> usize {
+        self.next_dir
     }
 }
 
