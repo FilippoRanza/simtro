@@ -1,11 +1,9 @@
-//! This module contains some trait defining a general 
-//! behavior that a station must implement and offers also 
+//! This module contains some trait defining a general
+//! behavior that a station must implement and offers also
 //! a simple implementation of those traits.
 
-
-
 use crate::car::Car;
-use crate::passenger::Passenger;
+use crate::passenger::{Passenger, PassengerNextDirectionIndex};
 use crate::routes::{MetroDirection, MetroInterchange};
 use crate::utils::index_list;
 
@@ -24,7 +22,7 @@ pub trait PassengerStation: Send + Sync {
 
 /// Board passengers on given train
 pub trait BoardPassengers: Send + Sync {
-    /// Board passenger on given Car. Boarded passengers 
+    /// Board passenger on given Car. Boarded passengers
     /// will no longer be on object
     fn board_passengers(&mut self, c: &mut Car);
 }
@@ -36,20 +34,18 @@ pub trait LandPassenger: Send + Sync {
     fn land_passenger(&mut self, c: &mut Car);
 }
 
-
-/// Simple station implementation. 
-/// Contains information about the 
-/// station id, MetroDirection and MetroIntechage and 
-/// the passenger list 
+/// Simple station implementation.
+/// Contains information about the
+/// station id, MetroDirection and MetroIntechage and
+/// the passenger list
 pub struct Station<'a> {
     index: usize,
     direction: &'a MetroDirection,
     interchange: &'a MetroInterchange,
-    passengers: index_list::IndexList<Passenger>,
+    passengers: index_list::IndexList<Passenger, PassengerNextDirectionIndex>,
 }
 
 impl<'a> Station<'a> {
-
     fn set_directions(&self, p: Passenger) -> Passenger {
         let dst = p.get_destination();
         p.set_next_direction(self.get_dir(dst))
@@ -80,3 +76,6 @@ impl<'a> BoardPassengers for Station<'a> {
     }
 }
 
+impl<'a> LandPassenger for Station<'a> {
+    fn land_passenger(&mut self, c: &mut Car) {}
+}

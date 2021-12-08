@@ -39,21 +39,19 @@ impl Passenger {
         self.next_stop == station
     }
 
-    /// Set next direction - terminus station - to reach 
+    /// Set next direction - terminus station - to reach
     /// destination
     pub fn set_next_direction(mut self, dir: usize) -> Self {
         self.next_dir = dir;
         self
     }
 
-
-    /// Set next interchange - terminus station - to reach 
+    /// Set next interchange - terminus station - to reach
     /// destination
     pub fn set_next_stop(mut self, stop: usize) -> Self {
         self.next_stop = stop;
         self
     }
-
 
     /// return passenger destination
     pub fn get_destination(&self) -> usize {
@@ -68,9 +66,21 @@ impl utils::unique_id::SetId for Passenger {
     }
 }
 
-impl index_list::Indexer for Passenger {
-    fn index(&self) -> usize {
-        self.next_dir
+#[derive(Default)]
+pub struct PassengerNextStopIndex {}
+
+impl index_list::Indexer<Passenger> for PassengerNextStopIndex {
+    fn index(&self, p: &Passenger) -> usize {
+        p.next_stop
+    }
+}
+
+#[derive(Default)]
+pub struct PassengerNextDirectionIndex {}
+
+impl index_list::Indexer<Passenger> for PassengerNextDirectionIndex {
+    fn index(&self, p: &Passenger) -> usize {
+        p.next_dir
     }
 }
 

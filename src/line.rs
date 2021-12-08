@@ -21,10 +21,11 @@ pub struct Line {
     terminus_b: Terminus,
     dir: Railway,
     fleet: fleet::Fleet,
+    line_size: usize,
 }
 
-/// Allow to specify if 
-/// direction is from terminus 1 to terminus 2 
+/// Allow to specify if
+/// direction is from terminus 1 to terminus 2
 /// or vice versa
 #[derive(Clone, Copy)]
 pub enum LineDirection {
@@ -33,7 +34,7 @@ pub enum LineDirection {
 }
 
 impl LineDirection {
-    /// invert direction 
+    /// invert direction
     pub fn swap(&mut self) {
         *self = match self {
             Self::DirectionA => Self::DirectionB,
@@ -57,6 +58,7 @@ impl Line {
         terminus_b: Terminus,
         dir: Railway,
         fleet: fleet::Fleet,
+        line_size: usize
     ) -> Self
     where
         C: Into<counter::Counter>,
@@ -67,18 +69,21 @@ impl Line {
             terminus_b,
             dir,
             fleet,
+            line_size
         }
     }
 
-    /// Implement a simulation step. Move trains 
+    /// Implement a simulation step. Move trains
     /// and, if it is possible, start a new train
     pub fn step(&mut self) {
         self.move_train();
         self.start_train();
+        self.terminus_a.step();
+        self.terminus_b.step();
     }
 
-    /// Board passengers on the train from the current 
-    /// station. 
+    /// Board passengers on the train from the current
+    /// station.
     pub fn passenger_boarding(&mut self, stats: &mut [station::Station]) {
         for car in self.fleet.in_station_car_iter() {
             let station = &mut stats[car.get_current_station()];
@@ -86,7 +91,7 @@ impl Line {
         }
     }
 
-    /// Step each train on the line. 
+    /// Step each train on the line.
     fn move_train(&mut self) {
         for train in self.fleet.running_cars_iter() {
             if train.run_step() {
@@ -105,7 +110,6 @@ impl Line {
         self.try_start_new_train(LineDirection::DirectionA);
         self.try_start_new_train(LineDirection::DirectionB);
     }
-
 
     /// Try to start a train in a given direction
     fn try_start_new_train(&mut self, dir: LineDirection) {
@@ -129,7 +133,8 @@ impl Line {
     fn start_new_train(&mut self, dir: LineDirection) {
         self.get_terminus_mut(dir).add_new_train();
         self.train_counter.step();
-        let car = car::Car::new(0, 1, dir);
+        let s_id = self.get_terminus(dir).get_station_id();
+        let car = car::Car::new(s_id, s_id, dir, self.line_size);
         self.fleet.start_train(car);
     }
 
@@ -148,8 +153,8 @@ impl Line {
     }
 }
 
-/// Implement the railway line. A Railway line is made of 
-/// trunks. 
+/// Implement the railway line. A Railway line is made of
+/// trunks.
 pub struct Railway {
     line: Vec<Segment>,
 }
@@ -159,8 +164,8 @@ impl Railway {
         Railway { line }
     }
 
-    /// Check if it is possible to occupy the next trunk (relative to direction) 
-    /// If it is possible perform the actual truck state update and return info 
+    /// Check if it is possible to occupy the next trunk (relative to direction)
+    /// If it is possible perform the actual truck state update and return info
     /// about the next step
     fn next_step(&mut self, curr: usize, dir: LineDirection) -> Option<NextStepInfo> {
         if self.is_free(curr, dir) {
@@ -187,13 +192,11 @@ impl Railway {
         }
     }
 
-
     /// Get terminus for given direction
     fn get_terminus(&self, dir: LineDirection) -> &'_ Segment {
         dir.choose_direction(self.line.first().unwrap(), self.line.last().unwrap())
     }
 }
-
 
 struct NextStepInfo {
     kind: SegmentType,
@@ -211,26 +214,26 @@ fn get_next_trunk(curr: usize, dir: LineDirection) -> usize {
 /// in the deposit and maximal number
 /// of station in deposit.
 pub struct Terminus {
+    station_id: usize,
     depo_counter: counter::Counter,
     train_counter: counter::CyclicCounter,
-    state: SegmentStatus,
 }
 
 impl Terminus {
-    fn new<D, T>(depo_size: D, train_delay: T) -> Self
+    fn new<D, T>(id: usize, depo_size: D, train_delay: T) -> Self
     where
         D: Into<counter::Counter>,
         T: Into<counter::CyclicCounter>,
     {
         Self {
+            station_id: id,
             depo_counter: depo_size.into(),
             train_counter: train_delay.into(),
-            state: SegmentStatus::default(),
         }
     }
 
     fn can_start_new_train(&self) -> bool {
-        if matches! {self.state, SegmentStatus::Occupied} || self.depo_counter.is_done() {
+        if self.depo_counter.is_done() {
             false
         } else {
             !self.train_counter.is_done()
@@ -243,20 +246,15 @@ impl Terminus {
 
     fn add_new_train(&mut self) {
         self.depo_counter.step();
-        self.train_arrival();
     }
 
-    fn train_arrival(&mut self) {
-        self.state = SegmentStatus::Occupied;
-    }
-
-    fn train_departure(&mut self) {
-        self.state = SegmentStatus::Free;
+    fn get_station_id(&self) -> usize {
+        self.station_id
     }
 }
 
-/// A railway segemnt. It can be single, so it allows just 
-/// one car at the time or double so it is possible to have one car 
+/// A railway segemnt. It can be single, so it allows just
+/// one car at the time or double so it is possible to have one car
 /// for direction.
 enum Segment {
     Single(SegmentInfo),
@@ -301,7 +299,7 @@ impl Segment {
 
 /// Information about a network segment
 /// type of segment, status and duration to
-/// to traverse it 
+/// to traverse it
 struct SegmentInfo {
     kind: SegmentType,
     stat: SegmentStatus,
@@ -330,9 +328,8 @@ impl SegmentInfo {
     }
 }
 
-
 /// A railway segment can be a station,
-/// a line connecting stations or a terminus (station 
+/// a line connecting stations or a terminus (station
 /// where a train must change direction)
 #[derive(Clone, Copy)]
 pub enum SegmentType {

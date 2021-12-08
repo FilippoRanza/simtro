@@ -1,11 +1,13 @@
 use crate::line::LineDirection;
-use crate::passenger::Passenger;
+use crate::passenger::{Passenger, PassengerNextStopIndex};
 
 use crate::line::SegmentType;
 use crate::utils::counter::Counter;
 
+use crate::utils::index_list::IndexList;
+
 pub struct Car {
-    passengers: Vec<Passenger>,
+    passengers: IndexList<Passenger, PassengerNextStopIndex>,
     state: CarState,
     destination: usize,
     current: usize,
@@ -14,14 +16,14 @@ pub struct Car {
 }
 
 impl Car {
-    pub fn new(destination: usize, current: usize, direction: LineDirection) -> Self {
+    pub fn new(destination: usize, current: usize, direction: LineDirection, line_size: usize) -> Self {
         Self {
             destination,
             current,
             direction,
             counter: Counter::new(0),
             state: CarState::Stop(0),
-            passengers: vec![],
+            passengers: IndexList::new_with_default_index(line_size),
         }
     }
 
