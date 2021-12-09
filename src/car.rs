@@ -16,7 +16,12 @@ pub struct Car {
 }
 
 impl Car {
-    pub fn new(destination: usize, current: usize, direction: LineDirection, line_size: usize) -> Self {
+    pub fn new(
+        destination: usize,
+        current: usize,
+        direction: LineDirection,
+        line_size: usize,
+    ) -> Self {
         Self {
             destination,
             current,
@@ -27,8 +32,12 @@ impl Car {
         }
     }
 
-    pub fn unboard_passengers(&mut self) {
-        todo! {}
+    pub fn set_current(&mut self, stat: usize) {
+        self.current = stat;
+    }
+
+    pub fn unboard_passengers(&mut self) -> &'_ mut Vec<Passenger> {
+        self.passengers.get_list_mut(self.current)
     }
 
     pub fn board_passengers(&mut self, ps: &mut Vec<Passenger>) {

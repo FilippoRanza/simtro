@@ -77,5 +77,9 @@ impl<'a> BoardPassengers for Station<'a> {
 }
 
 impl<'a> LandPassenger for Station<'a> {
-    fn land_passenger(&mut self, c: &mut Car) {}
+    fn land_passenger(&mut self, c: &mut Car) {
+        let passenger = c.unboard_passengers();
+        let iter = passenger.drain(..).filter(|p| p.is_destination(self.index));
+        self.passengers.append_iter(iter);
+    }
 }

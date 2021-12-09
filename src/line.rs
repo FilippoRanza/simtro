@@ -11,7 +11,7 @@ use crate::fleet;
 use crate::station;
 use crate::utils::counter;
 
-use crate::station::BoardPassengers;
+use crate::station::{BoardPassengers, LandPassenger};
 
 /// Control the current state of
 /// a given metro line.
@@ -58,7 +58,7 @@ impl Line {
         terminus_b: Terminus,
         dir: Railway,
         fleet: fleet::Fleet,
-        line_size: usize
+        line_size: usize,
     ) -> Self
     where
         C: Into<counter::Counter>,
@@ -69,7 +69,7 @@ impl Line {
             terminus_b,
             dir,
             fleet,
-            line_size
+            line_size,
         }
     }
 
@@ -84,10 +84,11 @@ impl Line {
 
     /// Board passengers on the train from the current
     /// station.
-    pub fn passenger_boarding(&mut self, stats: &mut [station::Station]) {
+    pub fn boarding_operations(&mut self, stats: &mut [station::Station]) {
         for car in self.fleet.in_station_car_iter() {
             let station = &mut stats[car.get_current_station()];
-            station.board_passengers(car)
+            station.board_passengers(car);
+            station.land_passenger(car);
         }
     }
 
@@ -204,7 +205,10 @@ struct NextStepInfo {
 }
 
 fn get_next_trunk(curr: usize, dir: LineDirection) -> usize {
-    dir.choose_direction(curr + 1, curr - 1)
+    match dir {
+        LineDirection::DirectionA => curr - 1,
+        LineDirection::DirectionB => curr + 1
+    }
 }
 
 /// A terminus station can used
@@ -347,5 +351,109 @@ enum SegmentStatus {
 impl Default for SegmentStatus {
     fn default() -> Self {
         Self::Free
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn test_check_next_railway() {
+        let railway = init_railway();
+        assert!(railway.is_free(1, LineDirection::DirectionA));
+        assert!(!railway.is_free(1, LineDirection::DirectionB));
+    }
+
+    #[test]
+    fn test_update_railway_position() {
+        let mut railway = init_railway();
+        let NextStepInfo {kind, time} =  railway.update_car_location(1, LineDirection::DirectionA);
+        assert_eq!(time, 0);
+        assert!(matches!{kind, SegmentType::Line});
+
+
+        assert!(railway.is_free(0, LineDirection::DirectionB));
+        assert!(!railway.is_free(1, LineDirection::DirectionA));
+        assert!(!railway.is_free(1, LineDirection::DirectionB));
+        assert!(railway.is_free(2, LineDirection::DirectionA));
+    }
+
+
+    #[test]
+    fn test_check_free_segment() {
+        let single_segment = Segment::Single(init_segment_info(SegmentStatus::Occupied));
+        assert!(!single_segment.is_free(LineDirection::DirectionA));
+        assert!(!single_segment.is_free(LineDirection::DirectionB));
+
+        let single_segment = Segment::Single(init_segment_info(SegmentStatus::Free));
+        assert!(single_segment.is_free(LineDirection::DirectionA));
+        assert!(single_segment.is_free(LineDirection::DirectionB));
+
+        let double_segment = Segment::Double(
+            init_segment_info(SegmentStatus::Free),
+            init_segment_info(SegmentStatus::Occupied),
+        );
+        assert!(double_segment.is_free(LineDirection::DirectionA));
+        assert!(!double_segment.is_free(LineDirection::DirectionB));
+
+        let double_segment = Segment::Double(
+            init_segment_info(SegmentStatus::Occupied),
+            init_segment_info(SegmentStatus::Free),
+        );
+        assert!(!double_segment.is_free(LineDirection::DirectionA));
+        assert!(double_segment.is_free(LineDirection::DirectionB));
+    }
+
+    #[test]
+    fn test_set_free_segment() {
+        let mut single_segment = Segment::Single(init_segment_info(SegmentStatus::Occupied));
+        single_segment.set_free(LineDirection::DirectionA);
+        assert!(single_segment.is_free(LineDirection::DirectionA));
+        assert!(single_segment.is_free(LineDirection::DirectionB));
+
+        let mut double_segment = Segment::Double(
+            init_segment_info(SegmentStatus::Occupied),
+            init_segment_info(SegmentStatus::Free),
+        );
+
+        double_segment.set_free(LineDirection::DirectionA);
+        assert!(double_segment.is_free(LineDirection::DirectionA));
+        assert!(double_segment.is_free(LineDirection::DirectionB));
+    }
+
+    #[test]
+    fn test_set_occupied_segment() {
+        let mut single_segment = Segment::Single(init_segment_info(SegmentStatus::Occupied));
+        single_segment.set_occupied(LineDirection::DirectionA);
+        assert!(!single_segment.is_free(LineDirection::DirectionA));
+        assert!(!single_segment.is_free(LineDirection::DirectionB));
+
+        let mut double_segment = Segment::Double(
+            init_segment_info(SegmentStatus::Occupied),
+            init_segment_info(SegmentStatus::Free),
+        );
+
+        double_segment.set_occupied(LineDirection::DirectionB);
+        assert!(!double_segment.is_free(LineDirection::DirectionA));
+        assert!(!double_segment.is_free(LineDirection::DirectionB));
+    }
+
+    fn init_segment_info(stat: SegmentStatus) -> SegmentInfo {
+        SegmentInfo {
+            kind: SegmentType::Line,
+            stat,
+            duration: 0,
+        }
+    }
+
+    fn init_railway() -> Railway {
+        let line = vec![
+            Segment::Single(init_segment_info(SegmentStatus::Free)),
+            Segment::Single(init_segment_info(SegmentStatus::Occupied)),
+            Segment::Single(init_segment_info(SegmentStatus::Occupied)),
+        ];
+        Railway { line }
     }
 }

@@ -1,4 +1,4 @@
-//! This module implements an indexed collection. Items 
+//! This module implements an indexed collection. Items
 //! inside the collection are segregated into different sub collections
 //! based on ther value of the index function.
 
@@ -7,14 +7,14 @@ use super::zeros;
 /// Trait defining the index function that maps
 /// an object into the proper sublist.
 pub trait Indexer<T> {
-    /// specify the sub group that this item 
-    /// belongs to. Value from this function must 
-    /// be in range [0 - IndexList.capacity]; code 
+    /// specify the sub group that this item
+    /// belongs to. Value from this function must
+    /// be in range [0 - IndexList.capacity]; code
     /// panics otherwise.
     fn index(&self, t: &T) -> usize;
 }
 
-/// Collect give objects into sub collection based 
+/// Collect give objects into sub collection based
 /// on thier value of the index function. The
 pub struct IndexList<T, I> {
     list: Vec<Vec<T>>,
@@ -25,20 +25,20 @@ impl<T, I> IndexList<T, I>
 where
     I: Indexer<T> + Default,
 {
-    /// Create a new IndexList with given capacity and 
+    /// Create a new IndexList with given capacity and
     /// prebuild Indexer
     pub fn new(capacity: usize, index: I) -> Self {
         let list = zeros(capacity);
         Self { list, index }
     }
 
-    /// Create a new IndexList with given capacity and 
+    /// Create a new IndexList with given capacity and
     /// default Indexer    
     pub fn new_with_default_index(capacity: usize) -> Self {
         Self::new(capacity, Default::default())
     }
 
-    /// Add element to collection. Element is 
+    /// Add element to collection. Element is
     /// inserted info proper sub collection.
     pub fn push(&mut self, t: T) {
         let i = self.index.index(&t);
@@ -56,11 +56,20 @@ where
     }
 
     /// Add all items from other into the collection,
-    /// other is left empty (but with untouched capacity )
+    /// other is left empty (but with untouched capacity).
+    /// other is emptied in reverse order.
     pub fn append(&mut self, other: &mut Vec<T>) {
         while let Some(i) = other.pop() {
             self.push(i)
         }
+    }
+
+    /// Add all iterm from given iterator in the collection.
+    pub fn append_iter<It>(&mut self, iter: It)
+    where
+        It: Iterator<Item = T>,
+    {
+        iter.for_each(|i| self.push(i))
     }
 }
 
@@ -87,6 +96,51 @@ mod test {
             vec![],
             vec![],
             vec![],
+            vec![],
+            vec![],
+        ];
+        assert_eq!(correct, index_list.list);
+    }
+
+    #[test]
+    fn test_index_list_append() {
+        let mut index_list = IndexList::new(10, 10);
+        // values are reverse sorted by decade
+        let mut values = vec![16, 24, 14, 78, 9, 3];
+        index_list.append(&mut values);
+
+        // so they appear in correct order in collection
+        let correct = vec![
+            vec![3, 9],
+            vec![14, 16],
+            vec![24],
+            vec![],
+            vec![],
+            vec![],
+            vec![],
+            vec![78],
+            vec![],
+            vec![],
+        ];
+        assert_eq!(correct, index_list.list);
+    }
+
+    #[test]
+    fn test_index_list_append_iter() {
+        let mut index_list = IndexList::new(10, 10);
+        let values = [16, 24, 14, 78, 9, 3];
+        index_list.append_iter(values.iter().copied());
+
+        // relative order is preserved.
+        let correct = vec![
+            vec![9, 3],
+            vec![16, 14],
+            vec![24],
+            vec![],
+            vec![],
+            vec![],
+            vec![],
+            vec![78],
             vec![],
             vec![],
         ];
