@@ -96,11 +96,11 @@ impl Line {
     fn move_train(&mut self) {
         for train in self.fleet.running_cars_iter() {
             if train.run_step() {
-                if let Some(NextStepInfo { time, kind }) = self
+                if let Some(NextStepInfo { time, kind, loc }) = self
                     .dir
-                    .next_step(train.get_current_station(), train.get_direction())
+                    .next_step(train.get_current_segment(), train.get_direction())
                 {
-                    train.next_step(time, kind);
+                    train.next_step(time, kind, loc);
                 }
             }
         }
@@ -134,9 +134,15 @@ impl Line {
     fn start_new_train(&mut self, dir: LineDirection) {
         self.get_terminus_mut(dir).add_new_train();
         self.train_counter.step();
-        let s_id = self.get_terminus(dir).get_station_id();
-        let car = car::Car::new(s_id, s_id, dir, self.line_size);
+        let station_index = self.get_terminus(dir).get_station_id();
+        let segment_index = self.get_terminus_index(dir);
+        let location = car::CarLocation::station(segment_index, station_index);
+        let car = car::Car::new(station_index, location, dir, self.line_size);
         self.fleet.start_train(car);
+    }
+
+    fn get_terminus_index(&self, dir: LineDirection) -> usize {
+        dir.choose_direction(self.dir.last_index(), 0)
     }
 
     fn get_terminus(&self, dir: LineDirection) -> &'_ Terminus {
@@ -190,6 +196,7 @@ impl Railway {
         NextStepInfo {
             kind: self.line[next].get_type(dir),
             time: self.line[next].get_duration(dir),
+            loc: self.line[next].make_location(dir, next),
         }
     }
 
@@ -197,17 +204,22 @@ impl Railway {
     fn get_terminus(&self, dir: LineDirection) -> &'_ Segment {
         dir.choose_direction(self.line.first().unwrap(), self.line.last().unwrap())
     }
+
+    fn last_index(&self) -> usize {
+        self.line.len() - 1
+    }
 }
 
 struct NextStepInfo {
     kind: SegmentType,
     time: usize,
+    loc: car::CarLocation,
 }
 
 fn get_next_trunk(curr: usize, dir: LineDirection) -> usize {
     match dir {
         LineDirection::DirectionA => curr - 1,
-        LineDirection::DirectionB => curr + 1
+        LineDirection::DirectionB => curr + 1,
     }
 }
 
@@ -240,7 +252,7 @@ impl Terminus {
         if self.depo_counter.is_done() {
             false
         } else {
-            !self.train_counter.is_done()
+            self.train_counter.is_done()
         }
     }
 
@@ -252,6 +264,8 @@ impl Terminus {
         self.depo_counter.step();
     }
 
+    /// Provide global station index of this terminus.
+    /// Required by the train to specify its direction.
     fn get_station_id(&self) -> usize {
         self.station_id
     }
@@ -280,6 +294,10 @@ impl Segment {
 
     fn get_duration(&self, dir: LineDirection) -> usize {
         self.choose_segment_info(dir).get_duration()
+    }
+
+    fn make_location(&self, dir: LineDirection, index: usize) -> car::CarLocation {
+        self.choose_segment_info(dir).make_location(index)
     }
 
     fn get_type(&self, dir: LineDirection) -> SegmentType {
@@ -330,6 +348,15 @@ impl SegmentInfo {
     fn get_type(&self) -> SegmentType {
         self.kind
     }
+
+    fn make_location(&self, index: usize) -> car::CarLocation {
+        match self.kind {
+            SegmentType::Station(i) | SegmentType::Terminus(i) => {
+                car::CarLocation::station(index, i)
+            }
+            SegmentType::Line => car::CarLocation::segment(index),
+        }
+    }
 }
 
 /// A railway segment can be a station,
@@ -337,8 +364,8 @@ impl SegmentInfo {
 /// where a train must change direction)
 #[derive(Clone, Copy)]
 pub enum SegmentType {
-    Station,
-    Terminus,
+    Station(usize),
+    Terminus(usize),
     Line,
 }
 
@@ -360,6 +387,81 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_terminus_can_start() {
+        // 4 train in depo, 3 steps between
+        // each new train
+        let mut term = Terminus::new(0, 4, 3);
+        for _ in 0..4 {
+            assert!(!term.can_start_new_train());
+            term.step();
+
+            assert!(!term.can_start_new_train());
+            term.step();
+
+            assert!(!term.can_start_new_train());
+            term.step();
+
+            assert!(term.can_start_new_train());
+            term.step();
+            term.add_new_train();
+        }
+
+        assert!(!term.can_start_new_train());
+        term.step();
+        assert!(!term.can_start_new_train());
+        term.step();
+        assert!(!term.can_start_new_train());
+        term.step();
+        assert!(!term.can_start_new_train());
+        term.step();
+        assert!(!term.can_start_new_train());
+        term.step();
+        assert!(!term.can_start_new_train());
+        term.step();
+    }
+
+    #[test]
+    fn text_next_step_railway() {
+        let mut railway = init_railway();
+        assert!(railway.next_step(0, LineDirection::DirectionB).is_none());
+        assert!(railway.next_step(1, LineDirection::DirectionB).is_none());
+        let res = railway.next_step(1, LineDirection::DirectionA);
+        assert! {
+            matches!{res, Some(NextStepInfo{kind, time, loc})
+                if matches!{kind, SegmentType::Line} &&
+                    time == 0 &&
+                    matches!{loc, car::CarLocation::Segment{index}
+                        if index == 0
+                    }
+            }
+        }
+    }
+
+    #[test]
+    fn test_get_terminus() {
+        let railway = init_railway();
+        assert!(matches!(
+            railway.get_terminus(LineDirection::DirectionA),
+            Segment::Single(SegmentInfo {
+                kind,
+                stat,
+                duration
+            })
+            if *duration == 0 && matches!{stat, SegmentStatus::Free} && matches!{kind, SegmentType::Line}
+
+        ));
+        assert!(matches!(
+            railway.get_terminus(LineDirection::DirectionB),
+            Segment::Single(SegmentInfo {
+                kind,
+                stat,
+                duration
+            })
+            if *duration == 0 && matches!{stat, SegmentStatus::Occupied} && matches!{kind, SegmentType::Line}
+        ));
+    }
+
+    #[test]
     fn test_check_next_railway() {
         let railway = init_railway();
         assert!(railway.is_free(1, LineDirection::DirectionA));
@@ -369,17 +471,17 @@ mod test {
     #[test]
     fn test_update_railway_position() {
         let mut railway = init_railway();
-        let NextStepInfo {kind, time} =  railway.update_car_location(1, LineDirection::DirectionA);
+        let NextStepInfo { kind, time, loc } =
+            railway.update_car_location(1, LineDirection::DirectionA);
         assert_eq!(time, 0);
-        assert!(matches!{kind, SegmentType::Line});
-
+        assert!(matches! {kind, SegmentType::Line});
 
         assert!(railway.is_free(0, LineDirection::DirectionB));
         assert!(!railway.is_free(1, LineDirection::DirectionA));
         assert!(!railway.is_free(1, LineDirection::DirectionB));
         assert!(railway.is_free(2, LineDirection::DirectionA));
+        assert!(matches! {loc, car::CarLocation::Segment{index} if index == 0});
     }
-
 
     #[test]
     fn test_check_free_segment() {

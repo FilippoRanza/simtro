@@ -8,9 +8,8 @@ use crate::utils::index_list::IndexList;
 
 pub struct Car {
     passengers: IndexList<Passenger, PassengerNextStopIndex>,
-    state: CarState,
     destination: usize,
-    current: usize,
+    location: CarLocation,
     direction: LineDirection,
     counter: Counter,
 }
@@ -18,50 +17,41 @@ pub struct Car {
 impl Car {
     pub fn new(
         destination: usize,
-        current: usize,
+        location: CarLocation,
         direction: LineDirection,
         line_size: usize,
     ) -> Self {
         Self {
             destination,
-            current,
+            location,
             direction,
             counter: Counter::new(0),
-            state: CarState::Stop(0),
             passengers: IndexList::new_with_default_index(line_size),
         }
     }
 
-    pub fn set_current(&mut self, stat: usize) {
-        self.current = stat;
+    pub fn set_location(&mut self, loc: CarLocation) {
+        self.location = loc
     }
 
     pub fn unboard_passengers(&mut self) -> &'_ mut Vec<Passenger> {
-        self.passengers.get_list_mut(self.current)
+        self.passengers.get_list_mut(self.get_current_station())
     }
 
     pub fn board_passengers(&mut self, ps: &mut Vec<Passenger>) {
         self.passengers.append(ps);
     }
 
-    pub fn board_passenger(&mut self, p: Passenger) {
-        self.passengers.push(p);
-    }
-
     pub fn in_station(&self) -> bool {
-        matches! {self.state, CarState::Stop(_)}
+        matches! {self.location, CarLocation::Station{ station: _, segment: _ }}
     }
 
     pub fn at_station(&self, s: usize) -> bool {
-        matches! {self.state, CarState::Stop(x) if s == x}
+        matches! {self.location, CarLocation::Station{ station, segment: _ } if s == station}
     }
 
     pub fn get_destination(&self) -> usize {
         self.destination
-    }
-
-    pub fn is_at_terminus(&self) -> bool {
-        self.at_station(self.destination)
     }
 
     pub fn change_direction(&mut self) {
@@ -69,7 +59,11 @@ impl Car {
     }
 
     pub fn get_current_station(&self) -> usize {
-        self.current
+        self.location.get_station()
+    }
+
+    pub fn get_current_segment(&self) -> usize {
+        self.location.get_segment()
     }
 
     pub fn get_direction(&self) -> LineDirection {
@@ -80,24 +74,50 @@ impl Car {
         self.counter.step()
     }
 
-    pub fn next_step(&mut self, value: usize, kind: SegmentType) {
+    pub fn next_step(&mut self, value: usize, kind: SegmentType, loc: CarLocation) {
         self.counter = value.into();
-        self.update_state(kind, 45);
+        self.location = loc;
+        self.update_state(kind);
     }
 
-    fn update_state(&mut self, kind: SegmentType, next: usize) {
-        self.state = match kind {
-            SegmentType::Line => CarState::Rail,
-            SegmentType::Station => CarState::Stop(next),
-            SegmentType::Terminus => CarState::Stop(next),
-        };
-        if matches! {kind, SegmentType::Terminus} {
+    fn update_state(&mut self, kind: SegmentType) {
+        if matches! {kind, SegmentType::Terminus(_)} {
             self.direction.swap();
         }
     }
 }
 
-pub enum CarState {
-    Stop(usize),
-    Rail,
+pub enum CarLocation {
+    Segment { index: usize },
+    Station { segment: usize, station: usize },
+}
+
+impl CarLocation {
+    pub fn segment(index: usize) -> Self {
+        Self::Segment { index }
+    }
+
+    pub fn station(segment: usize, station: usize) -> Self {
+        Self::Station { segment, station }
+    }
+
+    pub fn get_station(&self) -> usize {
+        match self {
+            Self::Station {
+                segment: _,
+                station,
+            } => *station,
+            _ => panic! {},
+        }
+    }
+
+    pub fn get_segment(&self) -> usize {
+        match self {
+            Self::Station {
+                segment,
+                station: _,
+            } => *segment,
+            Self::Segment { index } => *index,
+        }
+    }
 }
