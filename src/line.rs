@@ -274,6 +274,7 @@ impl Terminus {
 /// A railway segemnt. It can be single, so it allows just
 /// one car at the time or double so it is possible to have one car
 /// for direction.
+#[derive(PartialEq, Debug)]
 enum Segment {
     Single(SegmentInfo),
     Double(SegmentInfo, SegmentInfo),
@@ -322,6 +323,7 @@ impl Segment {
 /// Information about a network segment
 /// type of segment, status and duration to
 /// to traverse it
+#[derive(PartialEq, Debug)]
 struct SegmentInfo {
     kind: SegmentType,
     stat: SegmentStatus,
@@ -362,7 +364,7 @@ impl SegmentInfo {
 /// A railway segment can be a station,
 /// a line connecting stations or a terminus (station
 /// where a train must change direction)
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum SegmentType {
     Station(usize),
     Terminus(usize),
@@ -370,6 +372,7 @@ pub enum SegmentType {
 }
 
 /// A segment can be free or occupied
+#[derive(PartialEq, Debug)]
 enum SegmentStatus {
     Free,
     Occupied,
@@ -428,7 +431,7 @@ mod test {
         let res = railway.next_step(1, LineDirection::DirectionA);
         assert! {
             matches!{res, Some(NextStepInfo{kind, time, loc})
-                if matches!{kind, SegmentType::Line} &&
+                if kind == SegmentType::Line &&
                     time == 0 &&
                     matches!{loc, car::CarLocation::Segment{index}
                         if index == 0
@@ -440,26 +443,24 @@ mod test {
     #[test]
     fn test_get_terminus() {
         let railway = init_railway();
-        assert!(matches!(
-            railway.get_terminus(LineDirection::DirectionA),
+        assert_eq!(
+            *railway.get_terminus(LineDirection::DirectionA),
             Segment::Single(SegmentInfo {
-                kind,
-                stat,
-                duration
+                stat: SegmentStatus::Free,
+                kind: SegmentType::Line,
+                duration: 0
             })
-            if *duration == 0 && matches!{stat, SegmentStatus::Free} && matches!{kind, SegmentType::Line}
-
-        ));
-        assert!(matches!(
-            railway.get_terminus(LineDirection::DirectionB),
+        );
+        assert_eq!(
+            *railway.get_terminus(LineDirection::DirectionB),
             Segment::Single(SegmentInfo {
-                kind,
-                stat,
-                duration
+                stat: SegmentStatus::Occupied,
+                kind: SegmentType::Line,
+                duration: 0
             })
-            if *duration == 0 && matches!{stat, SegmentStatus::Occupied} && matches!{kind, SegmentType::Line}
-        ));
+        );
     }
+
 
     #[test]
     fn test_check_next_railway() {
