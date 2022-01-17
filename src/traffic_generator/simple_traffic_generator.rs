@@ -1,31 +1,14 @@
-//! This module define the TrafficGenerator trait and provide
-//! a simple implementation
-
+use super::TrafficGenerator;
+use super::{Int, Node};
 use rand;
 use rand_distr::{Distribution, Poisson};
 use splines::{Interpolation, Key, Spline};
-
-/// Allow to change probability type in no-time
-type Node = f64;
-/// Allow to change step type in no-time
-type Int = u32;
 
 /// Define default value for head and tail anchors if missing
 const DEFAULT_NODE_VALUE: Node = 1.0;
 
 /// Minute in an hour
 const MINUTE_IN_HOUR: Int = 60;
-
-/// A type implementing this trait can
-/// be used to generate the step by step
-/// traffic from one station to a specific
-/// destination.
-pub trait TrafficGenerator: Send + Sync {
-    /// Return number of passenger arriving at the station
-    /// at request step. This are passengers going to a
-    /// specific destination.
-    fn next_traffic_flow(&self, step: Int) -> Int;
-}
 
 /// Simple traffic generator based
 /// on spline (to generate the step wise probability)
@@ -85,6 +68,23 @@ fn spline_from_anchors(anchors: Vec<(Node, Node)>) -> Spline<Node, Node> {
 /// Build a spline key from a tuple
 fn key_from_tuple<T, V>(t: (T, V)) -> Key<T, V> {
     Key::new(t.0, t.1, Interpolation::Cosine)
+}
+
+/// draw a random number from poisson distribution
+/// with avg = lambda
+fn sample_poisson(lambda: Node) -> Node {
+    let poi = Poisson::new(lambda).unwrap();
+    poi.sample(&mut rand::thread_rng())
+}
+
+/// return number of steps knowing end time, begin time and step per minute
+fn get_time_steps(conf: &SimpleTrafficGeneratorConfig) -> Int {
+    (conf.time_end - conf.time_begin) * conf.minute_resolution * MINUTE_IN_HOUR
+}
+
+/// create an anchor at given time with default value (1.0)
+fn default_anchor(time: Int) -> (Int, Node) {
+    (time, DEFAULT_NODE_VALUE)
 }
 
 /// Add head and tail keys if required,
@@ -147,23 +147,6 @@ where
     } else {
         vec![default_anchor(time)]
     }
-}
-
-/// return number of steps knowing end time, begin time and step per minute
-fn get_time_steps(conf: &SimpleTrafficGeneratorConfig) -> Int {
-    (conf.time_end - conf.time_begin) * conf.minute_resolution * MINUTE_IN_HOUR
-}
-
-/// create an anchor at given time with default value (1.0)
-fn default_anchor(time: Int) -> (Int, Node) {
-    (time, DEFAULT_NODE_VALUE)
-}
-
-/// draw a random number from poisson distribution
-/// with avg = lambda
-fn sample_poisson(lambda: Node) -> Node {
-    let poi = Poisson::new(lambda).unwrap();
-    poi.sample(&mut rand::thread_rng())
 }
 
 /// SimpleTrafficGenerator Configuration, contains

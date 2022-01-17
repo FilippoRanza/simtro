@@ -19,7 +19,7 @@ pub struct Line {
     train_counter: counter::Counter,
     terminus_a: Terminus,
     terminus_b: Terminus,
-    dir: Railway,
+    railway: Railway,
     fleet: fleet::Fleet,
     line_size: usize,
 }
@@ -56,7 +56,7 @@ impl Line {
         counter: C,
         terminus_a: Terminus,
         terminus_b: Terminus,
-        dir: Railway,
+        railway: Railway,
         fleet: fleet::Fleet,
         line_size: usize,
     ) -> Self
@@ -67,7 +67,7 @@ impl Line {
             train_counter: counter.into(),
             terminus_a,
             terminus_b,
-            dir,
+            railway,
             fleet,
             line_size,
         }
@@ -97,7 +97,7 @@ impl Line {
         for train in self.fleet.running_cars_iter() {
             if train.run_step() {
                 if let Some(NextStepInfo { time, kind, loc }) = self
-                    .dir
+                    .railway
                     .next_step(train.get_current_segment(), train.get_direction())
                 {
                     train.next_step(time, kind, loc);
@@ -124,7 +124,7 @@ impl Line {
         if !self.train_counter.is_done() {
             return false;
         }
-        if !self.dir.get_terminus(dir).is_free(dir) {
+        if !self.railway.get_terminus(dir).is_free(dir) {
             return false;
         }
         self.get_terminus(dir).can_start_new_train()
@@ -142,21 +142,15 @@ impl Line {
     }
 
     fn get_terminus_index(&self, dir: LineDirection) -> usize {
-        dir.choose_direction(self.dir.last_index(), 0)
+        dir.choose_direction(self.railway.last_index(), 0)
     }
 
     fn get_terminus(&self, dir: LineDirection) -> &'_ Terminus {
-        match dir {
-            LineDirection::DirectionA => &self.terminus_a,
-            LineDirection::DirectionB => &self.terminus_b,
-        }
+        dir.choose_direction(&self.terminus_a, &self.terminus_b)
     }
 
     fn get_terminus_mut(&mut self, dir: LineDirection) -> &'_ mut Terminus {
-        match dir {
-            LineDirection::DirectionA => &mut self.terminus_a,
-            LineDirection::DirectionB => &mut self.terminus_b,
-        }
+        dir.choose_direction(&mut self.terminus_a, &mut self.terminus_b)
     }
 }
 
@@ -460,7 +454,6 @@ mod test {
             })
         );
     }
-
 
     #[test]
     fn test_check_next_railway() {

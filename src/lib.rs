@@ -9,5 +9,3 @@ pub mod traffic_generator;
 
 pub mod routes;
 pub mod utils;
-
-use crate::utils::index_list;
