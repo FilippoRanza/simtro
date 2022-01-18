@@ -31,7 +31,7 @@ impl Car {
     }
 
     pub fn set_location(&mut self, loc: CarLocation) {
-        self.location = loc
+        self.location = loc;
     }
 
     pub fn unboard_passengers(&mut self) -> &'_ mut Vec<Passenger> {
