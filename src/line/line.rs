@@ -6,12 +6,13 @@
 //! and current occupation of stations and connecting
 //! railways.
 
+use super::Duration;
+use super::StationID;
 use crate::car;
 use crate::fleet;
 use crate::station;
-use crate::utils::counter;
-
 use crate::station::{BoardPassengers, LandPassenger};
+use crate::utils::counter;
 
 /// Control the current state of
 /// a given metro line.
@@ -161,7 +162,7 @@ pub struct Railway {
 }
 
 impl Railway {
-    fn new(line: Vec<Segment>) -> Self {
+    pub fn new(line: Vec<Segment>) -> Self {
         Railway { line }
     }
 
@@ -269,7 +270,7 @@ impl Terminus {
 /// one car at the time or double so it is possible to have one car
 /// for direction.
 #[derive(PartialEq, Debug)]
-enum Segment {
+pub enum Segment {
     Single(SegmentInfo),
     Double(SegmentInfo, SegmentInfo),
 }
@@ -318,13 +319,21 @@ impl Segment {
 /// type of segment, status and duration to
 /// to traverse it
 #[derive(PartialEq, Debug)]
-struct SegmentInfo {
+pub struct SegmentInfo {
     kind: SegmentType,
     stat: SegmentStatus,
-    duration: usize,
+    duration: Duration,
 }
 
 impl SegmentInfo {
+    pub fn new(kind: SegmentType, duration: Duration) -> Self {
+        Self {
+            kind,
+            stat: SegmentStatus::Free,
+            duration,
+        }
+    }
+
     fn is_free(&self) -> bool {
         matches! {self.stat, SegmentStatus::Free}
     }
@@ -360,14 +369,14 @@ impl SegmentInfo {
 /// where a train must change direction)
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum SegmentType {
-    Station(usize),
-    Terminus(usize),
+    Station(StationID),
+    Terminus(StationID),
     Line,
 }
 
 /// A segment can be free or occupied
 #[derive(PartialEq, Debug)]
-enum SegmentStatus {
+pub enum SegmentStatus {
     Free,
     Occupied,
 }
