@@ -89,7 +89,7 @@ impl index_list::Indexer<Passenger> for PassengerNextDirectionIndex {
 /// according to the number given by the traffic generator
 /// implementation.
 pub struct PassengerFactory<T> {
-    traffic_generator: Vec<Vec<T>>,
+    traffic_generator: Vec<Vec<Option<T>>>,
 }
 
 impl<T> PassengerFactory<T>
@@ -97,7 +97,7 @@ where
     T: TrafficGenerator,
 {
     /// Initialize factory. T initialization is now handled here.
-    pub fn new(traffic_generator: Vec<Vec<T>>) -> Self {
+    pub fn new(traffic_generator: Vec<Vec<Option<T>>>) -> Self {
         Self { traffic_generator }
     }
 
@@ -113,14 +113,16 @@ where
     /// Create passengers for the given station implementation.
     fn build_station_traffic<S: PassengerStation>(
         index: usize,
-        traff_gen: &[T],
+        traff_gen: &[Option<T>],
         stat: &mut S,
         step: u32,
     ) {
         for (dst, gen) in traff_gen.iter().enumerate() {
-            for _ in 0..gen.next_traffic_flow(step) {
-                let p = Passenger::new(0, index, dst);
-                stat.enter_passenger(p)
+            if let Some(gen) = gen {
+                for _ in 0..gen.next_traffic_flow(step) {
+                    let p = Passenger::new(0, index, dst);
+                    stat.enter_passenger(p)
+                }
             }
         }
     }
@@ -150,7 +152,11 @@ mod test {
             is correct. Check correct behavior with zero passengers
             to create.
         */
-        let traffic_generator = vec![vec![0, 4, 5], vec![3, 0, 2], vec![1, 2, 0]];
+        let traffic_generator = vec![
+            vec![None, Some(4), Some(5)],
+            vec![Some(3), None, Some(2)],
+            vec![Some(1), Some(2), None],
+        ];
 
         let mut stations = vec![vec![], vec![], vec![]];
 

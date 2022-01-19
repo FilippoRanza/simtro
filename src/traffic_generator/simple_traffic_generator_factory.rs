@@ -19,16 +19,20 @@ pub struct SimpleTrafficGeneratorConfig {
 pub fn simple_traffic_generator_factory(
     traffic: Vec<Vec<Int>>,
     config: &SimpleTrafficGeneratorConfig,
-) -> Vec<Vec<stg::SimpleTrafficGenerator>> {
+) -> Vec<Vec<Option<stg::SimpleTrafficGenerator>>> {
     traffic
         .into_iter()
-        .map(|row| {
-            row.into_iter()
-                .map(|t| make_config(t, config))
-                .map(stg::SimpleTrafficGenerator::new)
-                .collect()
-        })
+        .map(|row| row.into_iter().map(|t| make_stg(t, &config)).collect())
         .collect()
+}
+
+fn make_stg(t: Int, conf: &SimpleTrafficGeneratorConfig) -> Option<stg::SimpleTrafficGenerator> {
+    if t > 0 {
+        let conf = make_config(t, conf);
+        Some(stg::SimpleTrafficGenerator::new(conf))
+    } else {
+        None
+    }
 }
 
 fn make_config(t: Int, conf: &SimpleTrafficGeneratorConfig) -> stg::SimpleTrafficGeneratorConfig {
