@@ -10,7 +10,7 @@ pub struct Fleet {
 }
 
 impl Fleet {
-    fn new(fleet_size: usize, speed: usize) -> Self {
+    pub fn new(fleet_size: usize, speed: usize) -> Self {
         let running = Vec::with_capacity(fleet_size);
         Self { running, speed }
     }

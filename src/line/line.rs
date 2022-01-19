@@ -52,7 +52,7 @@ impl LineDirection {
 }
 
 impl Line {
-    fn new<C>(
+    pub fn new<C>(
         counter: C,
         terminus_a: Terminus,
         terminus_b: Terminus,
