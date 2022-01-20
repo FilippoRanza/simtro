@@ -7,7 +7,6 @@ use splines::{Interpolation, Key, Spline};
 /// Define default value for head and tail anchors if missing
 const DEFAULT_NODE_VALUE: Node = 1.0;
 
-
 /// Simple traffic generator based
 /// on spline (to generate the step wise probability)
 /// and Poisson distribution to get the random number of
@@ -74,8 +73,6 @@ fn sample_poisson(lambda: Node) -> Node {
     let poi = Poisson::new(lambda).unwrap();
     poi.sample(&mut rand::thread_rng())
 }
-
-
 
 /// create an anchor at given time with default value (1.0)
 fn default_anchor(time: Int) -> (Int, Node) {
@@ -159,7 +156,6 @@ pub struct SimpleTrafficGeneratorConfig {
     pub minute_resolution: Int,
     pub traffic: Int,
 }
-
 
 impl SimpleTrafficGeneratorConfig {
     fn get_time_steps(&self) -> Int {

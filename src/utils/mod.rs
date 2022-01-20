@@ -12,11 +12,13 @@ use std::collections::HashSet;
 
 /// Crate a vector to the given length initialized
 /// to the default value of the return type.
+#[must_use]
 pub fn zeros<D: Default>(len: usize) -> Vec<D> {
     (0..len).map(|_| Default::default()).collect()
 }
 
 /// Collect given iterator into an Hash Set
+#[must_use]
 pub fn hash_set<T, I>(iter: I) -> HashSet<T>
 where
     I: IntoIterator<Item = T>,

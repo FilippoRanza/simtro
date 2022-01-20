@@ -6,6 +6,7 @@ pub struct MixingIterator<T, K> {
 }
 
 impl<T, K> MixingIterator<T, K> {
+    #[must_use]
     pub fn new(t: IntoIter<T>, k: IntoIter<K>) -> Self {
         let first = true;
         Self { t, k, first }

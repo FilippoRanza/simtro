@@ -17,6 +17,7 @@ impl From<usize> for Counter {
 
 impl Counter {
     /// Initialize struct specifing the target value
+    #[must_use]
     pub fn new(start: usize) -> Self {
         Self { start, current: 0 }
     }
@@ -47,6 +48,7 @@ impl Counter {
 
     /// Return true if the counter is done. This method
     /// does not modify the counter
+    #[must_use]
     pub fn is_done(&self) -> bool {
         self.current >= self.start
     }
@@ -72,6 +74,7 @@ impl From<usize> for CyclicCounter {
 
 impl CyclicCounter {
     /// Initialize struct specifing the target value
+    #[must_use]
     pub fn new(target: usize) -> Self {
         Self {
             counter: Counter::new(target),
@@ -102,7 +105,7 @@ impl CyclicCounter {
         }
         stat
     }
-
+    #[must_use]
     pub fn is_done(&self) -> bool {
         self.counter.is_done()
     }

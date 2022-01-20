@@ -22,7 +22,7 @@ pub fn simple_traffic_generator_factory(
 ) -> Vec<Vec<Option<stg::SimpleTrafficGenerator>>> {
     traffic
         .into_iter()
-        .map(|row| row.into_iter().map(|t| make_stg(t, &config)).collect())
+        .map(|row| row.into_iter().map(|t| make_stg(t, config)).collect())
         .collect()
 }
 
@@ -112,8 +112,7 @@ fn remap_value(rng: &mut ThreadRng, min: Node, max: Node, mean: Node) -> Node {
     let normal = rand_distr::Normal::new(mean, 1.).unwrap();
     normal
         .sample_iter(rng)
-        .filter(|n| *n >= min && *n <= max)
-        .next()
+        .find(|n| *n >= min && *n <= max)
         .unwrap()
 }
 

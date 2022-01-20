@@ -6,12 +6,14 @@ use ndarray::Array2;
 
 /// Create a square matrix of size n and initialize the value of
 /// each item to the default value of the output parameter.
+#[must_use]
 pub fn zeros<D: Default + Clone>(n: usize) -> Array2<D> {
     Array2::from_elem((n, n), D::default())
 }
 
 /// Create a zero matrix with the same size and type of the input
 /// argument.
+#[must_use]
 pub fn zeros_as<D: Default + Clone>(m: &Array2<D>) -> Array2<D> {
     let shape = m.raw_dim();
     Array2::from_elem(shape, D::default())

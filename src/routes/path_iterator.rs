@@ -7,7 +7,7 @@
 
 use super::Mat;
 
-/// PathIterator, given the successor matrix returns
+/// ``PathIterator``, given the successor matrix returns
 /// all the nodes in path from node A to node B. A will
 /// always be the first item and be will always be the last.
 pub struct PathIterator<'a> {
@@ -38,13 +38,13 @@ impl<'a> PathIterator<'a> {
 impl<'a> Iterator for PathIterator<'a> {
     type Item = usize;
     fn next(&mut self) -> Option<Self::Item> {
-        if self.curr != self.end {
+        if self.curr == self.end {
+            self.last.take()
+        } else {
             let tmp = self.curr;
             self.curr = self.next_mat[(self.curr, self.end)];
             self.last = Some(self.curr);
             Some(tmp)
-        } else {
-            self.last.take()
         }
     }
 }

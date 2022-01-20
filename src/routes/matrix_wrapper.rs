@@ -50,6 +50,7 @@ impl MetroInterchange {
     /// If start and dest are on the same line this function will
     /// return dest, otherwise function will return the next interchange
     /// station that the passenger must reach.
+    #[must_use]
     pub fn next_station(&self, start: usize, dest: usize) -> usize {
         self.wrap.index(start, dest)
     }

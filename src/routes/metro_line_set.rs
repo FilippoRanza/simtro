@@ -38,7 +38,7 @@ impl<'a> MetroLinesSet<'a> {
         false
     }
 
-    /// Return an IntoIterator that iterates through the couple
+    /// Return an ``IntoIterator`` that iterates through the couple
     /// (start, end) with the associated line station. start and end
     /// are inside the object.
     pub fn line_iterator(&'a self) -> impl IntoIterator<Item = LineItem<'a>> {
@@ -58,8 +58,7 @@ impl<'a> MetroLinesSet<'a> {
     pub fn find_interchanges(&self) -> HashSet<usize> {
         self.cross_line_iter()
             .into_iter()
-            .map(|(a, b)| a.intersection(b))
-            .flatten()
+            .flat_map(|(a, b)| a.intersection(b))
             .copied()
             .collect()
     }
@@ -76,7 +75,7 @@ impl<'a, 'b: 'a> From<&'b MetroLines<'a>> for MetroLinesSet<'b> {
             .map(|line| line.iter().copied().collect())
             .collect();
         let terminus = metro_lines.get_terminus();
-        Self { lines, terminus }
+        Self { terminus, lines }
     }
 }
 

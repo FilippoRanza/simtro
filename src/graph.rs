@@ -3,7 +3,6 @@
 /// Specify the type used for the arc weight
 pub type GraphWeight = u32;
 
-use crate::utils::matrix_utils;
 use ndarray::Array2;
 
 /// Graph's Arc. Define an arbitrary information A,

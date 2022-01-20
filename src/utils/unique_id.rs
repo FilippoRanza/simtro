@@ -1,7 +1,7 @@
 //! Define a simple counter useful to define unique IDs for objects.
 
 /// Counter that starts from zero and continues up to
-/// u32::MAX. No checks are performed at that point,
+/// ``u32::MAX``. No checks are performed at that point,
 /// it is considered unlikely that the program will need that
 /// many IDs. This struct does not implements a global state,
 /// so IDs returned by different instances will be duplicated.
@@ -11,6 +11,7 @@ pub struct UniqueId {
 
 impl UniqueId {
     /// Initialize the struct.
+    #[must_use]
     pub fn new() -> Self {
         Self { curr: 0 }
     }
@@ -45,7 +46,7 @@ impl Default for UniqueId {
     }
 }
 
-/// Define the SetId trait used to set the ID to the given object.
+/// Define the ``SetId`` trait used to set the ID to the given object.
 /// For simplicity the object is consumed by this function and returned as
 /// output.
 pub trait SetId {

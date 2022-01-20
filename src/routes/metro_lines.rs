@@ -20,6 +20,7 @@ impl<'a> MetroLines<'a> {
     /// considered the shortest path between the to terminus stations.
     /// The path for the line defined from terminus (T1, T2) is
     /// always the path from T1 to T2.
+    #[must_use]
     pub fn from_successor_matrix(next: &Mat, terminus: &'a [(usize, usize)]) -> Self {
         let lines = terminus
             .iter()
@@ -30,6 +31,7 @@ impl<'a> MetroLines<'a> {
 
     /// Build object from pre-build lines. Useful if the lines cannot be generated
     /// automatically from the shortest path.
+    #[must_use]
     pub fn from_given_lines(lines: Vec<Vec<usize>>, terminus: &'a [(usize, usize)]) -> Self {
         Self { lines, terminus }
     }
@@ -40,11 +42,12 @@ impl<'a> MetroLines<'a> {
     /// The path for the line defined from terminus (T1, T2) is
     /// always the path from T1 to T2.
     pub fn line_iter(&'a self) -> impl Iterator<Item = &[usize]> + 'a {
-        self.lines.iter().map(|l| l.as_slice())
+        self.lines.iter().map(Vec::as_slice)
     }
 
     /// Return a reference to the given terminus list on object
     /// construction.
+    #[must_use]
     pub fn get_terminus(&'a self) -> &'a [(usize, usize)] {
         self.terminus
     }

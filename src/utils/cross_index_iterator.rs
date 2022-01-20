@@ -18,6 +18,7 @@ pub struct CrossIndexIterator {
 impl CrossIndexIterator {
     /// Initialize the struct. Requires the maximal value
     /// of the index.
+    #[must_use]
     pub fn new(count: usize) -> Self {
         Self { count, i: 0, j: 0 }
     }

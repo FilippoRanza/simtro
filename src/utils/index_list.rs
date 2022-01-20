@@ -25,15 +25,16 @@ impl<T, I> IndexList<T, I>
 where
     I: Indexer<T> + Default,
 {
-    /// Create a new IndexList with given capacity and
+    /// Create a new ``IndexList`` with given capacity and
     /// prebuild Indexer
     pub fn new(capacity: usize, index: I) -> Self {
         let list = zeros(capacity);
         Self { list, index }
     }
 
-    /// Create a new IndexList with given capacity and
+    /// Create a new ``IndexList`` with given capacity and
     /// default Indexer    
+    #[must_use]
     pub fn new_with_default_index(capacity: usize) -> Self {
         Self::new(capacity, Default::default())
     }
@@ -60,7 +61,7 @@ where
     /// other is emptied in reverse order.
     pub fn append(&mut self, other: &mut Vec<T>) {
         while let Some(i) = other.pop() {
-            self.push(i)
+            self.push(i);
         }
     }
 
@@ -69,7 +70,7 @@ where
     where
         It: Iterator<Item = T>,
     {
-        iter.for_each(|i| self.push(i))
+        iter.for_each(|i| self.push(i));
     }
 }
 
