@@ -10,8 +10,8 @@ pub struct MetroDirection {
     wrap: MatrixWrapper<usize>,
 }
 
-/// Initialize a new MetroDirection object. Function not defined
-/// int MetroDirection to avoid exporting it with the struct
+/// Initialize a new ``MetroDirection`` object. Function not defined
+/// int ``MetroDirection`` to avoid exporting it with the struct
 pub fn new_metro_direction(mat: Mat) -> MetroDirection {
     MetroDirection {
         wrap: MatrixWrapper::new(mat),
@@ -24,6 +24,7 @@ impl MetroDirection {
     /// of the train that the passenger must take. If there is one (or more) interchange
     /// in the middle the function returns the direction that
     /// the passenger must take in order to reach the next interchange station.
+    #[must_use]
     pub fn get_direction(&self, start: usize, dest: usize) -> usize {
         self.wrap.index(start, dest)
     }
@@ -35,8 +36,8 @@ pub struct MetroInterchange {
     wrap: MatrixWrapper<usize>,
 }
 
-/// Initialize a new MetroInterchange object. Function not defined
-/// int MetroInterchange to avoid exporting it with the struct
+/// Initialize a new ``MetroInterchange`` object. Function not defined
+/// int ``MetroInterchange`` to avoid exporting it with the struct
 pub fn new_metro_interchange(mat: Mat) -> MetroInterchange {
     MetroInterchange {
         wrap: MatrixWrapper::new(mat),

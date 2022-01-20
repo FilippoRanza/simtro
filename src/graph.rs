@@ -23,11 +23,13 @@ pub struct Graph<N, A> {
 
 impl<N, A> Graph<N, A> {
     /// Return the number of nodes in the graph.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.nodes.len()
     }
 
     /// Return true if graph does not contain nodes.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.nodes.len() == 0
     }
@@ -41,8 +43,9 @@ struct AdjacentList<A> {
 /// Convert the Graph from the adjacent list to the distance matrix representation.
 /// Information in N and A will be lost; only the distance between two arcs is kept.
 /// If there is not a direct connection between node i and j the distance is set to
-/// GraphWeight::MAX
-pub fn to_distance_matrix<N, A>(g: &Graph<N, A>) -> Array2<GraphWeight> {
+/// ``GraphWeight::MAX``
+    #[must_use]
+    pub fn to_distance_matrix<N, A>(g: &Graph<N, A>) -> Array2<GraphWeight> {
     let mut dist_mat = Array2::from_elem((g.len(), g.len()), GraphWeight::MAX);
     for (i, adj) in g.adj.list.iter().enumerate() {
         dist_mat[(i, i)] = 0;

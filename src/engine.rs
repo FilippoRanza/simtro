@@ -5,7 +5,7 @@ use crate::traffic_generator::TrafficGenerator;
 
 pub fn engine<Tg: TrafficGenerator>(
     steps: u32,
-    passenger_factory: PassengerFactory<Tg>,
+    passenger_factory: &PassengerFactory<Tg>,
     mut stations: Vec<Station>,
     mut lines: Vec<line::Line>,
 ) {
@@ -17,7 +17,7 @@ pub fn engine<Tg: TrafficGenerator>(
 }
 
 fn move_trains(lines: &mut [line::Line]) {
-    lines.iter_mut().for_each(|ln| ln.step())
+    lines.iter_mut().for_each(line::Line::step);
 }
 
 fn passenger_boarding(lines: &mut [line::Line], stations: &mut [Station]) {

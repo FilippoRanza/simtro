@@ -28,7 +28,7 @@ impl PathMatrix {
         let line_set = metro_line_set::MetroLinesSet::from(metro_lines);
         let ipm = interchange_path::build_interchange_path_matrix(next_mat, &line_set);
         let mdm = metro_direction::build_metro_direction(next_mat, dist_mat, &line_set, &ipm);
-        Self { ipm, mdm }
+        Self { mdm, ipm }
     }
 }
 

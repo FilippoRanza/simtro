@@ -18,6 +18,7 @@ pub struct SimpleTrafficGenerator {
 
 impl SimpleTrafficGenerator {
     /// Initialize struct from given configuration.
+    #[must_use]
     pub fn new(conf: SimpleTrafficGeneratorConfig) -> Self {
         let steps = conf.get_time_steps();
         let anchors = convert_anchor_vector(conf.anchors, conf.time_begin, conf.time_end, steps);
@@ -28,7 +29,7 @@ impl SimpleTrafficGenerator {
 
     // get the average number of passenger at given step.
     fn get_passenger_probability_at(&self, step: Int) -> Node {
-        self.spline.sample(step as Node).unwrap() * self.scale
+        self.spline.sample(Node::from(step)).unwrap() * self.scale
     }
 }
 
@@ -41,17 +42,17 @@ impl TrafficGenerator for SimpleTrafficGenerator {
 }
 
 /// compute the scale factor that will ensure that the
-/// series of lambdas generte by get_passenger_probability is
+/// series of lambdas generte by ``get_passenger_probability`` is
 /// always equal to traffic (up to numberical errors).
 fn get_scale_value(spline: &Spline<Node, Node>, end: Int, traffic: Int) -> Node {
     let magn = integrate_spline(spline, end);
-    (traffic as Node) / magn
+    (Node::from(traffic)) / magn
 }
 
 /// return the sum of all the values
 fn integrate_spline(spline: &Spline<Node, Node>, end: Int) -> Node {
     (0..end)
-        .map(|i| i as Node)
+        .map(Node::from)
         .map(|f| spline.sample(f).unwrap())
         .sum()
 }
@@ -97,11 +98,11 @@ fn convert_anchor_vector(
 /// Perform time scale and translation so
 /// time of anchors[0] = 0 and time of anchors[last] = tf.
 fn scale_vector<T>(anchors: Vec<(Int, T)>, t0: Int, tf: Int, step_count: Int) -> Vec<(Node, T)> {
-    let scale = (step_count as Node) / ((tf - t0) as Node);
+    let scale = Node::from(step_count) / Node::from(tf - t0);
     anchors
         .into_iter()
         .map(|(t, p)| (t - t0, p))
-        .map(|(t, p)| (t as Node, p))
+        .map(|(t, p)| (Node::from(t), p))
         .map(|(t, p)| (t * scale, p))
         .collect()
 }
@@ -115,7 +116,7 @@ fn set_first(anchors: Vec<(Int, Node)>, time_begin: Int) -> Vec<(Int, Node)> {
 /// set an anchor point at tf with default value (1.0) if an anchor at tf is
 /// not present in the list.
 fn set_last(anchors: Vec<(Int, Node)>, time_end: Int) -> Vec<(Int, Node)> {
-    set_value_at_index_if_time_missing(anchors, time_end, |v, t| v.push(t), |v| v.last())
+    set_value_at_index_if_time_missing(anchors, time_end, Vec::push, |v| v.last())
 }
 
 /// Set an item in anchors using callback f if the
@@ -133,7 +134,7 @@ where
 {
     if let Some((t, _)) = g(&anchors) {
         if *t != time {
-            f(&mut anchors, default_anchor(time))
+            f(&mut anchors, default_anchor(time));
         }
         anchors
     } else {
@@ -141,13 +142,13 @@ where
     }
 }
 
-/// SimpleTrafficGenerator Configuration, contains
+/// ``SimpleTrafficGenerator`` Configuration, contains
 /// any parameters useful for struct initialization.
 /// A configuration contains the anchor points vector, this vect
 /// must be sorted by time.
-/// time_begin and time_end specifies the initial and final hour
+/// ``time_begin`` and ``time_end`` specifies the initial and final hour
 /// of the day.
-/// minute_resolution specifies the number of steps per minute.
+/// ``minute_resolution`` specifies the number of steps per minute.
 /// traffic specifies the total traffic during the n steps.
 pub struct SimpleTrafficGeneratorConfig {
     pub anchors: Vec<(Int, Node)>,

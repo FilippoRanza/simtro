@@ -15,6 +15,7 @@ pub struct Car {
 }
 
 impl Car {
+    #[must_use]
     pub fn new(
         destination: usize,
         location: CarLocation,
@@ -42,14 +43,17 @@ impl Car {
         self.passengers.append(ps);
     }
 
+    #[must_use]
     pub fn in_station(&self) -> bool {
         matches! {self.location, CarLocation::Station{ station: _, segment: _ }}
     }
 
+    #[must_use]
     pub fn at_station(&self, s: usize) -> bool {
         matches! {self.location, CarLocation::Station{ station, segment: _ } if s == station}
     }
 
+    #[must_use]
     pub fn get_destination(&self) -> usize {
         self.destination
     }
@@ -58,18 +62,22 @@ impl Car {
         self.direction.swap();
     }
 
+    #[must_use]
     pub fn get_current_station(&self) -> usize {
         self.location.get_station()
     }
 
+    #[must_use]
     pub fn get_current_segment(&self) -> usize {
         self.location.get_segment()
     }
 
+    #[must_use]
     pub fn get_direction(&self) -> LineDirection {
         self.direction
     }
 
+    #[must_use]
     pub fn run_step(&mut self) -> bool {
         self.counter.step()
     }
@@ -93,24 +101,28 @@ pub enum CarLocation {
 }
 
 impl CarLocation {
+    #[must_use]
     pub fn segment(index: usize) -> Self {
         Self::Segment { index }
     }
 
+    #[must_use]
     pub fn station(segment: usize, station: usize) -> Self {
         Self::Station { segment, station }
     }
 
+    #[must_use]
     pub fn get_station(&self) -> usize {
         match self {
             Self::Station {
                 segment: _,
                 station,
             } => *station,
-            _ => panic! {},
+            Self::Segment { .. } => panic! {},
         }
     }
 
+    #[must_use]
     pub fn get_segment(&self) -> usize {
         match self {
             Self::Station {

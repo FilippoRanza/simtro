@@ -22,7 +22,6 @@ use ndarray::Array2;
 // Type alias defined for brevity.
 type Mat = Array2<usize>;
 
-mod all_shortest_path;
 mod build_directions;
 mod build_matrices;
 mod interchange_path;

@@ -22,7 +22,7 @@ pub trait PassengerStation: Send + Sync {
 
 /// Board passengers on given train
 pub trait BoardPassengers: Send + Sync {
-    /// Board passenger on given Car. Boarded passengers
+    /// Board passenger on given ``Car``. Boarded passengers
     /// will no longer be on object
     fn board_passengers(&mut self, c: &mut Car);
 }
@@ -36,7 +36,7 @@ pub trait LandPassenger: Send + Sync {
 
 /// Simple station implementation.
 /// Contains information about the
-/// station id, MetroDirection and MetroIntechage and
+/// station id, ``MetroDirection`` and ``MetroIntechage`` and
 /// the passenger list
 pub struct Station<'a> {
     index: usize,
@@ -64,7 +64,7 @@ impl<'a> Station<'a> {
 impl<'a> PassengerStation for Station<'a> {
     fn enter_passenger(&mut self, p: Passenger) {
         let p = self.set_directions(p);
-        self.passengers.push(p)
+        self.passengers.push(p);
     }
 }
 

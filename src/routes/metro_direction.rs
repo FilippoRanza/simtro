@@ -73,7 +73,7 @@ fn set_cross_line_directions(lines: &MetroLinesSet, ipm: &Mat, mut dir_mat: Mat)
 /// to station dest. It assumes
 /// that start and dest are on the same line.
 fn find_closer<T: PrimInt>(
-    dist: &Array2<T>,
+    distance: &Array2<T>,
     t1: usize,
     t2: usize,
     start: usize,
@@ -82,8 +82,8 @@ fn find_closer<T: PrimInt>(
     if start == dest {
         start
     } else {
-        let d1 = dist[(start, t1)];
-        let d2 = dist[(dest, t1)];
+        let d1 = distance[(start, t1)];
+        let d2 = distance[(dest, t1)];
         if d2 >= d1 {
             t2
         } else {

@@ -30,6 +30,7 @@ pub enum LineChunkKind {
     Double,
 }
 
+#[must_use]
 pub fn line_factory(config: LineFactoryConfig) -> super::Line {
     let (term_a, term_b) = terminus_factory(
         &config.station_duration,
@@ -45,12 +46,12 @@ pub fn line_factory(config: LineFactoryConfig) -> super::Line {
 }
 
 fn terminus_factory(
-    sic: &[StationInfoConfig],
+    station_ics: &[StationInfoConfig],
     d: usize,
     t: usize,
 ) -> (line::Terminus, line::Terminus) {
-    let term_a = build_terminus(sic.first().unwrap(), d, t);
-    let term_b = build_terminus(sic.last().unwrap(), d, t);
+    let term_a = build_terminus(station_ics.first().unwrap(), d, t);
+    let term_b = build_terminus(station_ics.last().unwrap(), d, t);
     (term_a, term_b)
 }
 
@@ -59,17 +60,21 @@ fn build_terminus(info: &StationInfoConfig, d: usize, t: usize) -> line::Terminu
     line::Terminus::new(id, d, t)
 }
 
-fn railway_factory(sic: Vec<StationInfoConfig>, lic: Vec<LineInfoConfig>) -> line::Railway {
-    let line = segment_vector_factory(sic, lic);
+fn railway_factory(
+    station_ics: Vec<StationInfoConfig>,
+    line_ics: Vec<LineInfoConfig>,
+) -> line::Railway {
+    let line = segment_vector_factory(station_ics, line_ics);
     line::Railway::new(line)
 }
 
 fn segment_vector_factory(
-    sic: Vec<StationInfoConfig>,
-    lic: Vec<LineInfoConfig>,
+    station_ics: Vec<StationInfoConfig>,
+    line_ics: Vec<LineInfoConfig>,
 ) -> Vec<line::Segment> {
-    let line = Vec::with_capacity(sic.len() + lic.len());
-    let mix_iter = mixed_iterator::MixingIterator::new(sic.into_iter(), lic.into_iter());
+    let line = Vec::with_capacity(station_ics.len() + line_ics.len());
+    let mix_iter =
+        mixed_iterator::MixingIterator::new(station_ics.into_iter(), line_ics.into_iter());
     mix_iter.fold(line, segment_factory)
 }
 
@@ -78,34 +83,34 @@ fn segment_factory(
     e: mixed_iterator::MixingIteratorItem<StationInfoConfig, LineInfoConfig>,
 ) -> Vec<line::Segment> {
     match e {
-        mixed_iterator::MixingIteratorItem::T(sic) => {
-            let tmp = station_segment_factory(sic);
+        mixed_iterator::MixingIteratorItem::T(station_ics) => {
+            let tmp = station_segment_factory(&station_ics);
             line.push(tmp);
         }
-        mixed_iterator::MixingIteratorItem::K(lic) => {
-            let mut tmp = rails_all_segment_factory(lic);
+        mixed_iterator::MixingIteratorItem::K(line_ics) => {
+            let mut tmp = rails_all_segment_factory(&line_ics);
             line.append(&mut tmp);
         }
     };
     line
 }
 
-fn station_segment_factory(sic: StationInfoConfig) -> line::Segment {
-    let dir_a = station_segment_info_factory(&sic);
-    let dir_b = station_segment_info_factory(&sic);
+fn station_segment_factory(station_ic: &StationInfoConfig) -> line::Segment {
+    let dir_a = station_segment_info_factory(station_ic);
+    let dir_b = station_segment_info_factory(station_ic);
     line::Segment::Double(dir_a, dir_b)
 }
 
-fn station_segment_info_factory(sic: &StationInfoConfig) -> line::SegmentInfo {
-    let kind = line::SegmentType::Station(sic.index);
-    line::SegmentInfo::new(kind, sic.duration)
+fn station_segment_info_factory(station_ics: &StationInfoConfig) -> line::SegmentInfo {
+    let kind = line::SegmentType::Station(station_ics.index);
+    line::SegmentInfo::new(kind, station_ics.duration)
 }
 
-fn rails_all_segment_factory(lic: LineInfoConfig) -> Vec<line::Segment> {
-    lic.chunks.into_iter().map(rail_segment_factory).collect()
+fn rails_all_segment_factory(line_ic: &LineInfoConfig) -> Vec<line::Segment> {
+    line_ic.chunks.iter().map(rail_segment_factory).collect()
 }
 
-fn rail_segment_factory(chunk: LineChunkConfig) -> line::Segment {
+fn rail_segment_factory(chunk: &LineChunkConfig) -> line::Segment {
     let dur = chunk.duration;
     match chunk.kind {
         LineChunkKind::Single => line::Segment::Single(rail_segment_info_factory(dur)),
@@ -127,14 +132,14 @@ mod test {
 
     #[test]
     fn test_terminus_factory() {
-        let sic: Vec<StationInfoConfig> = (0..4)
+        let station_ics: Vec<StationInfoConfig> = (0..4)
             .map(|index| StationInfoConfig {
                 index,
                 duration: 10,
             })
             .collect();
 
-        let (ta, tb) = terminus_factory(&sic, 10, 4);
+        let (ta, tb) = terminus_factory(&station_ics, 10, 4);
         let expect_ta = line::Terminus::new(0, 10, 4);
         let expect_tb = line::Terminus::new(3, 10, 4);
         assert_eq!(ta, expect_ta);
@@ -143,13 +148,13 @@ mod test {
 
     #[test]
     fn test_railway_factory() {
-        let sic = (0..3)
+        let station_ics = (0..3)
             .map(|index| StationInfoConfig {
                 index,
                 duration: 10,
             })
             .collect();
-        let lic = (0..2)
+        let line_ics = (0..2)
             .map(|i| i % 3 + 1)
             .map(|i| {
                 (0..i)
@@ -165,7 +170,7 @@ mod test {
             })
             .map(|v| LineInfoConfig { chunks: v })
             .collect();
-        let railway = segment_vector_factory(sic, lic);
+        let railway = segment_vector_factory(station_ics, line_ics);
         let expected = vec![
             line::Segment::Double(
                 line::SegmentInfo::new(line::SegmentType::Station(0), 10),

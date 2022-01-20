@@ -43,8 +43,8 @@ impl LineDirection {
         };
     }
 
-    /// Choose first element if DirectionA, choose second if DirectionB
-    fn choose_direction<T>(&self, t1: T, t2: T) -> T {
+    /// Choose first element if ``DirectionA``, choose second if ``DirectionB``
+    fn choose_direction<T>(self, t1: T, t2: T) -> T {
         match self {
             Self::DirectionA => t1,
             Self::DirectionB => t2,
@@ -340,11 +340,11 @@ impl SegmentInfo {
     }
 
     fn set_occupied(&mut self) {
-        self.stat = SegmentStatus::Occupied
+        self.stat = SegmentStatus::Occupied;
     }
 
     fn set_free(&mut self) {
-        self.stat = SegmentStatus::Free
+        self.stat = SegmentStatus::Free;
     }
 
     fn get_duration(&self) -> usize {

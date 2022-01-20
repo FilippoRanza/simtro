@@ -1,5 +1,5 @@
-//! This module implements a factory to build a SimpleTrafficGenerator
-//! matrix that is required by a PassengerGeneraror.
+//! This module implements a factory to build a ``SimpleTrafficGenerator``
+//! matrix that is required by a ``PassengerFactory``.
 
 use super::simple_traffic_generator as stg;
 use super::{Int, Node};
@@ -16,6 +16,7 @@ pub struct SimpleTrafficGeneratorConfig {
     max_anchor: Node,
 }
 
+#[must_use]
 pub fn simple_traffic_generator_factory(
     traffic: Vec<Vec<Int>>,
     config: &SimpleTrafficGeneratorConfig,
@@ -100,7 +101,7 @@ fn remap_time(
     selected: &mut HashSet<Int>,
 ) -> Int {
     loop {
-        let tmp = remap_value(rng, min as Node, max as Node, time as Node) as Int;
+        let tmp = remap_value(rng, min.into(), max.into(), time.into()) as Int;
         if !selected.contains(&tmp) {
             selected.insert(tmp);
             return tmp;

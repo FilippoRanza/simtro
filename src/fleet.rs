@@ -9,6 +9,7 @@ pub struct Fleet {
 }
 
 impl Fleet {
+    #[must_use]
     pub fn new(fleet_size: usize) -> Self {
         let running = Vec::with_capacity(fleet_size);
         Self { running }
@@ -26,6 +27,6 @@ impl Fleet {
 
     /// Add a new train to list of running trains.
     pub fn start_train(&mut self, car: car::Car) {
-        self.running.push(car)
+        self.running.push(car);
     }
 }

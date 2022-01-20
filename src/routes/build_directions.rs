@@ -4,10 +4,10 @@
 use ndarray::Array2;
 use num_traits::PrimInt;
 
-use super::all_shortest_path;
 use super::build_matrices;
 use super::matrix_wrapper;
 use super::metro_lines;
+use all_shortest_path;
 
 /// Construct the [`super::matrix_wrapper::MetroDirection`]
 /// and [`super::matrix_wrapper::MetroInterchange`]
@@ -15,6 +15,7 @@ use super::metro_lines;
 /// of terminus. The lines are automatically determined as the
 /// shortest path between the terminal station. Interchanges stations
 /// are computed are the intersection between lines.
+#[must_use]
 pub fn build_directions<T: PrimInt + Default>(
     adj_mat: Array2<T>,
     terminus: &'_ [(usize, usize)],
@@ -38,6 +39,7 @@ pub fn build_directions<T: PrimInt + Default>(
 /// object knowing the adjacent matrix of the network and the metro
 /// lines. To use only if the lines cannot be constructed automatically
 /// from the terminus list following the shortest path between the terminus stations.
+#[must_use]
 pub fn build_directions_from_lines<T: PrimInt + Default>(
     adj_mat: Array2<T>,
     metro_lines: &metro_lines::MetroLines<'_>,

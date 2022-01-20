@@ -2,7 +2,7 @@
 //!  This module contains the Passenger implementation. At the current time
 //!  it is just an information about the start and stop station combined with a unique id.
 //!  There is also the implementation for the passengere factory. This struct
-//!  is initialized using a traffic matrix (see traffic_generator.rs)
+//!  is initialized using a traffic matrix (see ``traffic_generator.rs``)
 //!  iterates through this matrix and generate the required number of
 //!  passengers that start from station i to stattion j
 //!
@@ -24,6 +24,7 @@ pub struct Passenger {
 
 impl Passenger {
     /// Create a new passenger instance.
+    #[must_use]
     fn new(id: u32, start: usize, dest: usize) -> Self {
         Self {
             id,
@@ -35,12 +36,14 @@ impl Passenger {
     }
 
     /// Check if passenger is at its final destionation
+    #[must_use]
     pub fn is_destination(&self, station: usize) -> bool {
         self.next_stop == station
     }
 
     /// Set next direction - terminus station - to reach
     /// destination
+    #[must_use]
     pub fn set_next_direction(mut self, dir: usize) -> Self {
         self.next_dir = dir;
         self
@@ -48,12 +51,14 @@ impl Passenger {
 
     /// Set next interchange - terminus station - to reach
     /// destination
+    #[must_use]
     pub fn set_next_stop(mut self, stop: usize) -> Self {
         self.next_stop = stop;
         self
     }
 
     /// return passenger destination
+    #[must_use]
     pub fn get_destination(&self) -> usize {
         self.dest
     }
@@ -97,6 +102,7 @@ where
     T: TrafficGenerator,
 {
     /// Initialize factory. T initialization is now handled here.
+    #[must_use]
     pub fn new(traffic_generator: Vec<Vec<Option<T>>>) -> Self {
         Self { traffic_generator }
     }
@@ -121,7 +127,7 @@ where
             if let Some(gen) = gen {
                 for _ in 0..gen.next_traffic_flow(step) {
                     let p = Passenger::new(0, index, dst);
-                    stat.enter_passenger(p)
+                    stat.enter_passenger(p);
                 }
             }
         }
