@@ -7,8 +7,6 @@ use splines::{Interpolation, Key, Spline};
 /// Define default value for head and tail anchors if missing
 const DEFAULT_NODE_VALUE: Node = 1.0;
 
-/// Minute in an hour
-const MINUTE_IN_HOUR: Int = 60;
 
 /// Simple traffic generator based
 /// on spline (to generate the step wise probability)
@@ -22,7 +20,7 @@ pub struct SimpleTrafficGenerator {
 impl SimpleTrafficGenerator {
     /// Initialize struct from given configuration.
     pub fn new(conf: SimpleTrafficGeneratorConfig) -> Self {
-        let steps = get_time_steps(&conf);
+        let steps = conf.get_time_steps();
         let anchors = convert_anchor_vector(conf.anchors, conf.time_begin, conf.time_end, steps);
         let spline = spline_from_anchors(anchors);
         let scale = get_scale_value(&spline, steps, conf.traffic);
@@ -77,10 +75,7 @@ fn sample_poisson(lambda: Node) -> Node {
     poi.sample(&mut rand::thread_rng())
 }
 
-/// return number of steps knowing end time, begin time and step per minute
-fn get_time_steps(conf: &SimpleTrafficGeneratorConfig) -> Int {
-    (conf.time_end - conf.time_begin) * conf.minute_resolution * MINUTE_IN_HOUR
-}
+
 
 /// create an anchor at given time with default value (1.0)
 fn default_anchor(time: Int) -> (Int, Node) {
@@ -165,6 +160,13 @@ pub struct SimpleTrafficGeneratorConfig {
     pub traffic: Int,
 }
 
+
+impl SimpleTrafficGeneratorConfig {
+    fn get_time_steps(&self) -> Int {
+        crate::get_steps(self.time_begin, self.time_end, self.minute_resolution)
+    }
+}
+
 #[cfg(test)]
 mod test {
 
@@ -197,7 +199,7 @@ mod test {
             minute_resolution: 2,
             traffic,
         };
-        let steps = get_time_steps(&conf);
+        let steps = conf.get_time_steps();
         let stg = SimpleTrafficGenerator::new(conf);
         let res: Node = (0..steps)
             .map(|i| stg.get_passenger_probability_at(i))
