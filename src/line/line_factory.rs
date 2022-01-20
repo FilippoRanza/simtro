@@ -1,7 +1,7 @@
 use super::line;
 use super::Duration;
 use super::StationID;
-use crate::utils::counter;
+use crate::fleet;
 use crate::utils::mixed_iterator;
 
 pub struct LineFactoryConfig {
@@ -30,29 +30,31 @@ pub enum LineChunkKind {
     Double,
 }
 
-pub fn line_factory(config: LineFactoryConfig) -> super::Line
-{
+pub fn line_factory(config: LineFactoryConfig) -> super::Line {
     let (term_a, term_b) = terminus_factory(
         &config.station_duration,
         config.depo_size,
         config.train_delay,
     );
+    let line_size = config.station_duration.len();
     let railway = railway_factory(config.station_duration, config.line_duration);
+    let train_count = 2 * config.depo_size;
+    let fleet = fleet::Fleet::new(train_count, 0);
 
-    todo! {}
+    super::Line::new(train_count, term_a, term_b, railway, fleet, line_size)
 }
 
-fn terminus_factory(sic: &[StationInfoConfig], d: usize, t: usize) -> (line::Terminus, line::Terminus)
-
-{
+fn terminus_factory(
+    sic: &[StationInfoConfig],
+    d: usize,
+    t: usize,
+) -> (line::Terminus, line::Terminus) {
     let term_a = build_terminus(sic.first().unwrap(), d, t);
     let term_b = build_terminus(sic.last().unwrap(), d, t);
     (term_a, term_b)
 }
 
-fn build_terminus(info: &StationInfoConfig, d: usize, t: usize) -> line::Terminus
-
-{
+fn build_terminus(info: &StationInfoConfig, d: usize, t: usize) -> line::Terminus {
     let id = info.index;
     line::Terminus::new(id, d, t)
 }
@@ -123,15 +125,14 @@ mod test {
 
     use super::*;
 
-
     #[test]
     fn test_terminus_factory() {
         let sic: Vec<StationInfoConfig> = (0..4)
-        .map(|index| StationInfoConfig {
-            index,
-            duration: 10,
-        })
-        .collect();
+            .map(|index| StationInfoConfig {
+                index,
+                duration: 10,
+            })
+            .collect();
 
         let (ta, tb) = terminus_factory(&sic, 10, 4);
         let expect_ta = line::Terminus::new(0, 10, 4);
