@@ -2,6 +2,7 @@
 //! at the end)
 
 /// One time counter implementation.
+#[derive(Debug, PartialEq)]
 pub struct Counter {
     start: usize,
     current: usize,
@@ -57,6 +58,7 @@ impl Counter {
 }
 
 /// Cyclic Counter implementation.
+#[derive(Debug, PartialEq)]
 pub struct CyclicCounter {
     counter: Counter,
 }

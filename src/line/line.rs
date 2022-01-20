@@ -224,6 +224,7 @@ fn get_next_trunk(curr: usize, dir: LineDirection) -> usize {
 /// the current number of trains
 /// in the deposit and maximal number
 /// of station in deposit.
+#[derive(Debug, PartialEq)]
 pub struct Terminus {
     station_id: usize,
     depo_counter: counter::Counter,
@@ -231,7 +232,7 @@ pub struct Terminus {
 }
 
 impl Terminus {
-    fn new<D, T>(id: usize, depo_size: D, train_delay: T) -> Self
+    pub fn new<D, T>(id: usize, depo_size: D, train_delay: T) -> Self
     where
         D: Into<counter::Counter>,
         T: Into<counter::CyclicCounter>,

@@ -1,12 +1,14 @@
+use super::line;
 use super::Duration;
 use super::StationID;
-use super::line;
 use crate::utils::counter;
 use crate::utils::mixed_iterator;
 
 pub struct LineFactoryConfig {
     station_duration: Vec<StationInfoConfig>,
     line_duration: Vec<LineInfoConfig>,
+    depo_size: usize,
+    train_delay: usize,
 }
 
 pub struct StationInfoConfig {
@@ -28,15 +30,31 @@ pub enum LineChunkKind {
     Double,
 }
 
-pub fn line_factory(config: LineFactoryConfig) -> super::Line {
-    let (term_a, term_b) = get_terminus(&config.station_duration);
+pub fn line_factory(config: LineFactoryConfig) -> super::Line
+{
+    let (term_a, term_b) = terminus_factory(
+        &config.station_duration,
+        config.depo_size,
+        config.train_delay,
+    );
     let railway = railway_factory(config.station_duration, config.line_duration);
 
     todo! {}
 }
 
-fn get_terminus(sic: &[StationInfoConfig], ) -> (line::Terminus, line::Terminus) {
-    todo!{}
+fn terminus_factory(sic: &[StationInfoConfig], d: usize, t: usize) -> (line::Terminus, line::Terminus)
+
+{
+    let term_a = build_terminus(sic.first().unwrap(), d, t);
+    let term_b = build_terminus(sic.last().unwrap(), d, t);
+    (term_a, term_b)
+}
+
+fn build_terminus(info: &StationInfoConfig, d: usize, t: usize) -> line::Terminus
+
+{
+    let id = info.index;
+    line::Terminus::new(id, d, t)
 }
 
 fn railway_factory(sic: Vec<StationInfoConfig>, lic: Vec<LineInfoConfig>) -> line::Railway {
@@ -100,12 +118,27 @@ fn rail_segment_info_factory(duration: Duration) -> line::SegmentInfo {
     line::SegmentInfo::new(line::SegmentType::Line, duration)
 }
 
-
-
 #[cfg(test)]
 mod test {
 
     use super::*;
+
+
+    #[test]
+    fn test_terminus_factory() {
+        let sic: Vec<StationInfoConfig> = (0..4)
+        .map(|index| StationInfoConfig {
+            index,
+            duration: 10,
+        })
+        .collect();
+
+        let (ta, tb) = terminus_factory(&sic, 10, 4);
+        let expect_ta = line::Terminus::new(0, 10, 4);
+        let expect_tb = line::Terminus::new(3, 10, 4);
+        assert_eq!(ta, expect_ta);
+        assert_eq!(tb, expect_tb);
+    }
 
     #[test]
     fn test_railway_factory() {
@@ -158,5 +191,4 @@ mod test {
 
         assert_eq!(railway, expected);
     }
-
 }

@@ -34,7 +34,6 @@ pub enum MixingIteratorItem<T, K> {
     K(K),
 }
 
-
 #[cfg(test)]
 mod test {
 
