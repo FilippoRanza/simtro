@@ -6,13 +6,12 @@ use crate::car;
 
 pub struct Fleet {
     running: Vec<car::Car>,
-    speed: usize,
 }
 
 impl Fleet {
-    pub fn new(fleet_size: usize, speed: usize) -> Self {
+    pub fn new(fleet_size: usize) -> Self {
         let running = Vec::with_capacity(fleet_size);
-        Self { running, speed }
+        Self { running }
     }
 
     /// Iterate through all possible running trains

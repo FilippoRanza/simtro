@@ -39,7 +39,7 @@ pub fn line_factory(config: LineFactoryConfig) -> super::Line {
     let line_size = config.station_duration.len();
     let railway = railway_factory(config.station_duration, config.line_duration);
     let train_count = 2 * config.depo_size;
-    let fleet = fleet::Fleet::new(train_count, 0);
+    let fleet = fleet::Fleet::new(train_count);
 
     super::Line::new(train_count, term_a, term_b, railway, fleet, line_size)
 }
