@@ -16,6 +16,25 @@ pub struct SimpleTrafficGeneratorConfig {
     max_anchor: Node,
 }
 
+impl SimpleTrafficGeneratorConfig {
+    #[must_use]
+    pub fn new(
+        time: (Int, Int),
+        resolution: Int,
+        anchors: Vec<(Int, Node)>,
+        levels: (Node, Node),
+    ) -> Self {
+        Self {
+            begin: time.0,
+            end: time.1,
+            resolution,
+            anchors,
+            min_anchor: levels.0,
+            max_anchor: levels.1,
+        }
+    }
+}
+
 #[must_use]
 pub fn simple_traffic_generator_factory(
     traffic: Vec<Vec<Int>>,

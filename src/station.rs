@@ -34,6 +34,31 @@ pub trait LandPassenger: Send + Sync {
     fn land_passenger(&mut self, c: &mut Car);
 }
 
+pub fn station_list_factory<'a>(
+    count: usize,
+    direction: &'a MetroDirection,
+    interchange: &'a MetroInterchange,
+) -> Vec<Station<'a>> {
+    (0..count)
+        .map(|id| station_factory(id, count, direction, interchange))
+        .collect()
+}
+
+fn station_factory<'a>(
+    id: usize,
+    total: usize,
+    direction: &'a MetroDirection,
+    interchange: &'a MetroInterchange,
+) -> Station<'a> {
+    let passengers = index_list::IndexList::new_with_default_index(total);
+    Station {
+        index: id,
+        direction,
+        interchange,
+        passengers,
+    }
+}
+
 /// Simple station implementation.
 /// Contains information about the
 /// station id, ``MetroDirection`` and ``MetroIntechage`` and

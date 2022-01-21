@@ -44,8 +44,8 @@ struct AdjacentList<A> {
 /// Information in N and A will be lost; only the distance between two arcs is kept.
 /// If there is not a direct connection between node i and j the distance is set to
 /// ``GraphWeight::MAX``
-    #[must_use]
-    pub fn to_distance_matrix<N, A>(g: &Graph<N, A>) -> Array2<GraphWeight> {
+#[must_use]
+pub fn to_distance_matrix<N, A>(g: &Graph<N, A>) -> Array2<GraphWeight> {
     let mut dist_mat = Array2::from_elem((g.len(), g.len()), GraphWeight::MAX);
     for (i, adj) in g.adj.list.iter().enumerate() {
         dist_mat[(i, i)] = 0;
