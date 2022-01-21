@@ -73,8 +73,7 @@ where
     I: IntoIterator<Item = Duration>,
 {
     iter.into_iter()
-        .map(move |len| BuildLineChunkConfig::new(split_line, len))
-        .map(line_factory::LineInfoConfig::from_iter)
+        .map(move |len| BuildLineChunkConfig::new(split_line, len).collect())
 }
 
 pub const CHUNK_COUNT: usize = 3;

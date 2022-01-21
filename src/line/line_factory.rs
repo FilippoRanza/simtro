@@ -12,6 +12,7 @@ pub struct LineFactoryConfig {
 }
 
 impl LineFactoryConfig {
+    #[must_use]
     pub fn new(
         station_duration: Vec<StationInfoConfig>,
         line_duration: Vec<LineInfoConfig>,
@@ -26,6 +27,7 @@ impl LineFactoryConfig {
         }
     }
 
+    #[must_use]
     pub fn from_iter<T, K>(station_duration: T, line_duration: K) -> Self
     where
         T: Iterator<Item = StationInfoConfig>,
@@ -33,12 +35,13 @@ impl LineFactoryConfig {
     {
         Self::new(station_duration.collect(), line_duration.collect(), 0, 0)
     }
-
+    #[must_use]
     pub fn set_depo_size(mut self, value: usize) -> Self {
         self.depo_size = value;
         self
     }
 
+    #[must_use]
     pub fn set_train_delay(mut self, value: usize) -> Self {
         self.train_delay = value;
         self
@@ -51,6 +54,7 @@ pub struct StationInfoConfig {
 }
 
 impl StationInfoConfig {
+    #[must_use]
     pub fn new(index: StationID, duration: Duration) -> Self {
         Self { index, duration }
     }
@@ -61,15 +65,18 @@ pub struct LineInfoConfig {
 }
 
 impl LineInfoConfig {
+    #[must_use]
     pub fn new(chunks: Vec<LineChunkConfig>) -> Self {
         Self { chunks }
     }
+}
 
-    pub fn from_iter<I>(iter: I) -> Self
+impl std::iter::FromIterator<LineChunkConfig> for LineInfoConfig {
+    fn from_iter<T>(iter: T) -> Self
     where
-        I: Iterator<Item = LineChunkConfig>,
+        T: IntoIterator<Item = LineChunkConfig>,
     {
-        Self::new(iter.collect())
+        Self::new(iter.into_iter().collect())
     }
 }
 
@@ -80,6 +87,7 @@ pub struct LineChunkConfig {
 }
 
 impl LineChunkConfig {
+    #[must_use]
     pub fn new(duration: Duration, kind: LineChunkKind) -> Self {
         Self { duration, kind }
     }

@@ -34,6 +34,7 @@ pub trait LandPassenger: Send + Sync {
     fn land_passenger(&mut self, c: &mut Car);
 }
 
+#[must_use]
 pub fn station_list_factory<'a>(
     count: usize,
     direction: &'a MetroDirection,
