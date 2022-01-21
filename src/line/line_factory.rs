@@ -11,20 +11,81 @@ pub struct LineFactoryConfig {
     train_delay: usize,
 }
 
+impl LineFactoryConfig {
+    pub fn new(
+        station_duration: Vec<StationInfoConfig>,
+        line_duration: Vec<LineInfoConfig>,
+        depo_size: usize,
+        train_delay: usize,
+    ) -> Self {
+        Self {
+            station_duration,
+            line_duration,
+            depo_size,
+            train_delay,
+        }
+    }
+
+    pub fn from_iter<T, K>(station_duration: T, line_duration: K) -> Self
+    where
+        T: Iterator<Item = StationInfoConfig>,
+        K: Iterator<Item = LineInfoConfig>,
+    {
+        Self::new(station_duration.collect(), line_duration.collect(), 0, 0)
+    }
+
+    pub fn set_depo_size(mut self, value: usize) -> Self {
+        self.depo_size = value;
+        self
+    }
+
+    pub fn set_train_delay(mut self, value: usize) -> Self {
+        self.train_delay = value;
+        self
+    }
+}
+
 pub struct StationInfoConfig {
     index: StationID,
     duration: Duration,
+}
+
+impl StationInfoConfig {
+    pub fn new(index: StationID, duration: Duration) -> Self {
+        Self { index, duration }
+    }
 }
 
 pub struct LineInfoConfig {
     chunks: Vec<LineChunkConfig>,
 }
 
+impl LineInfoConfig {
+    pub fn new(chunks: Vec<LineChunkConfig>) -> Self {
+        Self { chunks }
+    }
+
+    pub fn from_iter<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = LineChunkConfig>,
+    {
+        Self::new(iter.collect())
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct LineChunkConfig {
     duration: Duration,
     kind: LineChunkKind,
 }
 
+impl LineChunkConfig {
+    pub fn new(duration: Duration, kind: LineChunkKind) -> Self {
+        Self { duration, kind }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub enum LineChunkKind {
     Single,
     Double,
