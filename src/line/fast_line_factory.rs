@@ -11,10 +11,30 @@ pub struct FastLineFactoryConfig<Is, It> {
     train_delay: usize,
 }
 
+impl<Is, It> FastLineFactoryConfig<Is, It> {
+    pub fn new(
+        station_ids: Is,
+        station_time: Duration,
+        line_len: It,
+        split_len: Duration,
+        depo_size: usize,
+        train_delay: usize,
+    ) -> Self {
+        Self {
+            station_ids,
+            station_time,
+            line_len,
+            split_len,
+            depo_size,
+            train_delay,
+        }
+    }
+}
+
 pub fn fast_line_factory<Is, It>(conf: FastLineFactoryConfig<Is, It>) -> super::Line
 where
-    Is: Iterator<Item = StationID>,
-    It: Iterator<Item = Duration>,
+    Is: IntoIterator<Item = StationID>,
+    It: IntoIterator<Item = Duration>,
 {
     let lfc = build_line_factory_config(conf);
     line_factory::line_factory(lfc)
@@ -24,8 +44,8 @@ fn build_line_factory_config<Is, It>(
     conf: FastLineFactoryConfig<Is, It>,
 ) -> line_factory::LineFactoryConfig
 where
-    Is: Iterator<Item = StationID>,
-    It: Iterator<Item = Duration>,
+    Is: IntoIterator<Item = StationID>,
+    It: IntoIterator<Item = Duration>,
 {
     let station_info_iter = station_info_config_factory(conf.station_time, conf.station_ids);
     let line_info_iter = line_info_config_factory(conf.split_len, conf.line_len);
@@ -39,9 +59,10 @@ fn station_info_config_factory<I>(
     iter: I,
 ) -> impl Iterator<Item = line_factory::StationInfoConfig>
 where
-    I: Iterator<Item = StationID>,
+    I: IntoIterator<Item = StationID>,
 {
-    iter.map(move |id| line_factory::StationInfoConfig::new(id, time))
+    iter.into_iter()
+        .map(move |id| line_factory::StationInfoConfig::new(id, time))
 }
 
 fn line_info_config_factory<I>(
@@ -49,9 +70,10 @@ fn line_info_config_factory<I>(
     iter: I,
 ) -> impl Iterator<Item = line_factory::LineInfoConfig>
 where
-    I: Iterator<Item = Duration>,
+    I: IntoIterator<Item = Duration>,
 {
-    iter.map(move |len| BuildLineChunkConfig::new(split_line, len))
+    iter.into_iter()
+        .map(move |len| BuildLineChunkConfig::new(split_line, len))
         .map(line_factory::LineInfoConfig::from_iter)
 }
 
