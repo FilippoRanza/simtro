@@ -19,6 +19,7 @@ fn test_run() {
         [u32::MAX, 1, u32::MAX, u32::MAX, u32::MAX],
     ]);
 
+    let total_station_count = adj_mat.ncols();
     let (_, dir, inter) = routes::build_directions(adj_mat, &[(0, 2), (3, 4)]);
 
     let begin = 5;
@@ -42,10 +43,10 @@ fn test_run() {
 
     let fast_line_config =
         line::fast_line_factory::FastLineFactoryConfig::new(0..=2, 5, [6, 6], 7, 4, 11);
-    let line_a = line::fast_line_factory::fast_line_factory(fast_line_config);
+    let line_a = line::fast_line_factory::fast_line_factory(fast_line_config, total_station_count);
     let fast_line_config =
         line::fast_line_factory::FastLineFactoryConfig::new([3, 1, 4], 5, [6, 6], 7, 4, 11);
-    let line_b = line::fast_line_factory::fast_line_factory(fast_line_config);
+    let line_b = line::fast_line_factory::fast_line_factory(fast_line_config, total_station_count);
     let lines = vec![line_a, line_b];
 
     engine::engine(steps, &pf, stations, lines);

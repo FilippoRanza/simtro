@@ -14,6 +14,7 @@ use rayon::prelude::*;
 
 /// Passenger struct. Keep information about the
 /// departure and destionaton station, with an unique id.
+#[derive(Debug)]
 pub struct Passenger {
     id: u32,
     start: usize,
@@ -71,7 +72,7 @@ impl utils::unique_id::SetId for Passenger {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct PassengerNextStopIndex {}
 
 impl index_list::Indexer<Passenger> for PassengerNextStopIndex {

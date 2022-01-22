@@ -6,6 +6,7 @@ use crate::utils::counter::Counter;
 
 use crate::utils::index_list::IndexList;
 
+#[derive(Debug)]
 pub struct Car {
     passengers: IndexList<Passenger, PassengerNextStopIndex>,
     destination: usize,
@@ -20,14 +21,14 @@ impl Car {
         destination: usize,
         location: CarLocation,
         direction: LineDirection,
-        line_size: usize,
+        network_size: usize,
     ) -> Self {
         Self {
             destination,
             location,
             direction,
             counter: Counter::new(0),
-            passengers: IndexList::new_with_default_index(line_size),
+            passengers: IndexList::new_with_default_index(dbg! {network_size}),
         }
     }
 
@@ -94,7 +95,7 @@ impl Car {
         }
     }
 }
-
+#[derive(Debug)]
 pub enum CarLocation {
     Segment { index: usize },
     Station { segment: usize, station: usize },

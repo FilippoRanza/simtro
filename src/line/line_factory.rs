@@ -7,6 +7,7 @@ use crate::utils::mixed_iterator;
 pub struct LineFactoryConfig {
     station_duration: Vec<StationInfoConfig>,
     line_duration: Vec<LineInfoConfig>,
+    total_staion_count: usize,
     depo_size: usize,
     train_delay: usize,
 }
@@ -16,12 +17,15 @@ impl LineFactoryConfig {
     pub fn new(
         station_duration: Vec<StationInfoConfig>,
         line_duration: Vec<LineInfoConfig>,
+        total_staion_count: usize,
         depo_size: usize,
         train_delay: usize,
     ) -> Self {
         Self {
             station_duration,
             line_duration,
+            total_staion_count,
+
             depo_size,
             train_delay,
         }
@@ -33,8 +37,15 @@ impl LineFactoryConfig {
         T: Iterator<Item = StationInfoConfig>,
         K: Iterator<Item = LineInfoConfig>,
     {
-        Self::new(station_duration.collect(), line_duration.collect(), 0, 0)
+        Self::new(station_duration.collect(), line_duration.collect(), 0, 0, 0)
     }
+
+    #[must_use]
+    pub fn set_total_station_count(mut self, value: usize) -> Self {
+        self.total_staion_count = value;
+        self
+    }
+
     #[must_use]
     pub fn set_depo_size(mut self, value: usize) -> Self {
         self.depo_size = value;
@@ -106,12 +117,18 @@ pub fn line_factory(config: LineFactoryConfig) -> super::Line {
         config.depo_size,
         config.train_delay,
     );
-    let line_size = config.station_duration.len();
     let railway = railway_factory(config.station_duration, config.line_duration);
     let train_count = 2 * config.depo_size;
     let fleet = fleet::Fleet::new(train_count);
 
-    super::Line::new(train_count, term_a, term_b, railway, fleet, line_size)
+    super::Line::new(
+        dbg! {train_count},
+        term_a,
+        term_b,
+        railway,
+        fleet,
+        config.total_staion_count,
+    )
 }
 
 fn terminus_factory(

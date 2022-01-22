@@ -16,6 +16,7 @@ pub trait Indexer<T> {
 
 /// Collect give objects into sub collection based
 /// on thier value of the index function. The
+#[derive(Debug)]
 pub struct IndexList<T, I> {
     list: Vec<Vec<T>>,
     index: I,

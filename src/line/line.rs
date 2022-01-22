@@ -22,13 +22,13 @@ pub struct Line {
     terminus_b: Terminus,
     railway: Railway,
     fleet: fleet::Fleet,
-    line_size: usize,
+    network_size: usize,
 }
 
 /// Allow to specify if
 /// direction is from terminus 1 to terminus 2
 /// or vice versa
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum LineDirection {
     DirectionA,
     DirectionB,
@@ -59,7 +59,7 @@ impl Line {
         terminus_b: Terminus,
         railway: Railway,
         fleet: fleet::Fleet,
-        line_size: usize,
+        network_size: usize,
     ) -> Self
     where
         C: Into<counter::Counter>,
@@ -70,7 +70,7 @@ impl Line {
             terminus_b,
             railway,
             fleet,
-            line_size,
+            network_size,
         }
     }
 
@@ -78,7 +78,9 @@ impl Line {
     /// and, if it is possible, start a new train
     pub fn step(&mut self) {
         self.move_train();
+        println!("Start");
         self.start_train();
+        println!("Done");
         self.terminus_a.step();
         self.terminus_b.step();
     }
@@ -109,20 +111,23 @@ impl Line {
 
     /// Start train on each direction
     fn start_train(&mut self) {
+        println!("A1");
         self.try_start_new_train(LineDirection::DirectionA);
+        println!("A2");
         self.try_start_new_train(LineDirection::DirectionB);
+        println!("A3");
     }
 
     /// Try to start a train in a given direction
     fn try_start_new_train(&mut self, dir: LineDirection) {
-        if self.can_start_new_train(dir) {
+        if dbg! {self.can_start_new_train(dir)} {
             self.start_new_train(dir);
         }
     }
 
     /// Check if it is possible to start a new train
     fn can_start_new_train(&self, dir: LineDirection) -> bool {
-        if !self.train_counter.is_done() {
+        if self.train_counter.is_done() {
             return false;
         }
         if !self.railway.get_terminus(dir).is_free(dir) {
@@ -138,7 +143,7 @@ impl Line {
         let station_index = self.get_terminus(dir).get_station_id();
         let segment_index = self.get_terminus_index(dir);
         let location = car::CarLocation::station(segment_index, station_index);
-        let car = car::Car::new(station_index, location, dir, self.line_size);
+        let car = car::Car::new(station_index, dbg! {location}, dir, self.network_size);
         self.fleet.start_train(car);
     }
 
@@ -391,7 +396,38 @@ impl Default for SegmentStatus {
 #[cfg(test)]
 mod test {
 
+    use super::super::fast_line_factory;
     use super::*;
+
+    #[test]
+    fn test_line_step() {
+        let cfg = fast_line_factory::FastLineFactoryConfig::new(0..=2, 6, [3, 4], 6, 4, 5);
+        let mut line = fast_line_factory::fast_line_factory(cfg, 3);
+        assert!(line.fleet.running_cars_iter().next().is_none());
+        for _ in 0..5 {
+            line.step();
+            assert!(line.fleet.running_cars_iter().next().is_none());
+        }
+        line.step();
+        for _ in 0..5 {
+            line.step();
+            let mut running = line.fleet.running_cars_iter();
+            assert!(running.next().is_some());
+            assert!(running.next().is_some());
+            assert!(running.next().is_none());
+        }
+
+        line.step();
+        for _ in 0..5 {
+            line.step();
+            let mut running = line.fleet.running_cars_iter();
+            assert!(running.next().is_some());
+            assert!(running.next().is_some());
+            assert!(running.next().is_some());
+            assert!(running.next().is_some());
+            assert!(running.next().is_none());
+        }
+    }
 
     #[test]
     fn test_terminus_can_start() {

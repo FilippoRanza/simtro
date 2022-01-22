@@ -31,17 +31,21 @@ impl<Is, It> FastLineFactoryConfig<Is, It> {
     }
 }
 
-pub fn fast_line_factory<Is, It>(conf: FastLineFactoryConfig<Is, It>) -> super::Line
+pub fn fast_line_factory<Is, It>(
+    conf: FastLineFactoryConfig<Is, It>,
+    total_station_count: usize,
+) -> super::Line
 where
     Is: IntoIterator<Item = StationID>,
     It: IntoIterator<Item = Duration>,
 {
-    let lfc = build_line_factory_config(conf);
+    let lfc = build_line_factory_config(conf, total_station_count);
     line_factory::line_factory(lfc)
 }
 
 fn build_line_factory_config<Is, It>(
     conf: FastLineFactoryConfig<Is, It>,
+    tsc: usize,
 ) -> line_factory::LineFactoryConfig
 where
     Is: IntoIterator<Item = StationID>,
@@ -52,6 +56,7 @@ where
     line_factory::LineFactoryConfig::from_iter(station_info_iter, line_info_iter)
         .set_depo_size(conf.depo_size)
         .set_train_delay(conf.train_delay)
+        .set_total_station_count(tsc)
 }
 
 fn station_info_config_factory<I>(
