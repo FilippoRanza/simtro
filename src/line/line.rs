@@ -78,9 +78,7 @@ impl Line {
     /// and, if it is possible, start a new train
     pub fn step(&mut self) {
         self.move_train();
-        println!("Start");
         self.start_train();
-        println!("Done");
         self.terminus_a.step();
         self.terminus_b.step();
     }
@@ -111,11 +109,8 @@ impl Line {
 
     /// Start train on each direction
     fn start_train(&mut self) {
-        println!("A1");
         self.try_start_new_train(LineDirection::DirectionA);
-        println!("A2");
         self.try_start_new_train(LineDirection::DirectionB);
-        println!("A3");
     }
 
     /// Try to start a train in a given direction
