@@ -29,4 +29,15 @@ impl Fleet {
     pub fn start_train(&mut self, car: car::Car) {
         self.running.push(car);
     }
+
+
+    pub fn len(&self) -> usize {
+        self.running.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.running.is_empty()
+    }
+
+
 }

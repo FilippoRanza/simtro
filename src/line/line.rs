@@ -398,29 +398,34 @@ mod test {
     fn test_line_step() {
         let cfg = fast_line_factory::FastLineFactoryConfig::new(0..=2, 6, [3, 4], 6, 4, 5);
         let mut line = fast_line_factory::fast_line_factory(cfg, 3);
-        assert!(line.fleet.running_cars_iter().next().is_none());
+        assert!(line.fleet.is_empty());
         for _ in 0..5 {
             line.step();
-            assert!(line.fleet.running_cars_iter().next().is_none());
+            assert!(line.fleet.is_empty());
         }
         line.step();
         for _ in 0..5 {
             line.step();
-            let mut running = line.fleet.running_cars_iter();
-            assert!(running.next().is_some());
-            assert!(running.next().is_some());
-            assert!(running.next().is_none());
+            assert_eq!(line.fleet.len(), 2);
         }
 
         line.step();
         for _ in 0..5 {
             line.step();
-            let mut running = line.fleet.running_cars_iter();
-            assert!(running.next().is_some());
-            assert!(running.next().is_some());
-            assert!(running.next().is_some());
-            assert!(running.next().is_some());
-            assert!(running.next().is_none());
+            assert_eq!(line.fleet.len(), 4);
+        }
+        
+        line.step();
+        for _ in 0..5 {
+            line.step();
+            assert_eq!(line.fleet.len(), 6);
+        }
+
+
+        line.step();
+        for _ in 0..15 {
+            line.step();
+            assert_eq!(line.fleet.len(), 8);
         }
     }
 
