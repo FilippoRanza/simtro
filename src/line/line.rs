@@ -101,7 +101,7 @@ impl Line {
                     .railway
                     .next_step(train.get_current_segment(), train.get_direction())
                 {
-                    train.next_step(time, kind, loc);
+                    train.next_step(time, dbg! {kind}, loc);
                 }
             }
         }
@@ -115,7 +115,7 @@ impl Line {
 
     /// Try to start a train in a given direction
     fn try_start_new_train(&mut self, dir: LineDirection) {
-        if dbg! {self.can_start_new_train(dir)} {
+        if self.can_start_new_train(dir) {
             self.start_new_train(dir);
         }
     }
@@ -138,7 +138,8 @@ impl Line {
         let station_index = self.get_terminus(dir).get_station_id();
         let segment_index = self.get_terminus_index(dir);
         let location = car::CarLocation::station(segment_index, station_index);
-        let car = car::Car::new(station_index, dbg! {location}, dir, self.network_size);
+        let duration = self.railway.get_segment_duration(dir, segment_index);
+        let car = car::Car::new(station_index, location, dir, self.network_size, duration);
         self.fleet.start_train(car);
     }
 
@@ -147,16 +148,17 @@ impl Line {
     }
 
     fn get_terminus(&self, dir: LineDirection) -> &'_ Terminus {
-        dir.choose_direction(&self.terminus_a, &self.terminus_b)
+        dir.choose_direction(&self.terminus_b, &self.terminus_a)
     }
 
     fn get_terminus_mut(&mut self, dir: LineDirection) -> &'_ mut Terminus {
-        dir.choose_direction(&mut self.terminus_a, &mut self.terminus_b)
+        dir.choose_direction(&mut self.terminus_b, &mut self.terminus_a)
     }
 }
 
 /// Implement the railway line. A Railway line is made of
 /// trunks.
+#[derive(Debug)]
 pub struct Railway {
     line: Vec<Segment>,
 }
@@ -164,6 +166,11 @@ pub struct Railway {
 impl Railway {
     pub fn new(line: Vec<Segment>) -> Self {
         Railway { line }
+    }
+
+    fn get_segment_duration(&self, dir: LineDirection, index: usize) -> usize {
+        let station = &self.line[index];
+        station.get_duration(dir)
     }
 
     /// Check if it is possible to occupy the next trunk (relative to direction)
@@ -394,6 +401,150 @@ mod test {
     use super::super::fast_line_factory;
     use super::*;
 
+    macro_rules! assert_station_index {
+        ($iter: ident, $id: expr, $seg: expr, $i: expr) => {
+            let car = $iter.next();
+            assert!(car.is_some());
+            let car = car.unwrap();
+            assert!(car.in_station(), "Iteration: {}", $i);
+            assert_eq!(car.get_current_station(), $id, "Iteration: {}", $i);
+            assert_eq!(car.get_current_segment(), $seg, "Iteration: {}", $i);
+        };
+    }
+
+    macro_rules! assert_line_index {
+        ($iter: ident, $id: expr) => {
+            let car = $iter.next().unwrap();
+            assert!(!car.in_station());
+            assert_eq!(car.get_current_segment(), $id);
+        };
+    }
+
+    #[test]
+    fn test_one_train_movement() {
+        let cfg = fast_line_factory::FastLineFactoryConfig::new(0..=3, 6, [4, 4, 4], 6, 1, 0);
+        let mut line = fast_line_factory::fast_line_factory(cfg, 4);
+        line.step();
+        assert_eq!(line.fleet.len(), 2);
+        for i in 0..6 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 3, 6, i);
+                assert_station_index!(iter, 0, 0, i);
+            }
+            line.step();
+        }
+        line.step();
+        for _ in 0..4 {
+            line.step();
+        }
+
+        line.step();
+        for i in 0..6 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 2, 4, i);
+                assert_station_index!(iter, 1, 2, i);
+            }
+            line.step();
+        }
+        line.step();
+        for i in 0..4 {
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_line_index!(iter, 3);
+                assert_station_index!(iter, 1, 2, i);
+            }
+            line.step();
+        }
+
+        line.step();
+        for i in 0..4 {
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 1, 2, i);
+                assert_line_index!(iter, 3);
+            }
+            line.step();
+        }
+
+        line.step();
+        for i in 0..2 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 1, 2, i);
+                assert_station_index!(iter, 2, 4, i);
+            }
+            line.step();
+        }
+        line.step();
+
+        for i in 0..4 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_line_index!(iter, 1);
+                assert_station_index!(iter, 2, 4, i);
+            }
+            line.step();
+        }
+        line.step();
+        for i in 0..4 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 0, 0, i);
+                assert_line_index!(iter, 5);
+            }
+            line.step();
+        }
+
+        for i in 0..2 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 0, 0, i);
+                assert_station_index!(iter, 3, 6, i);
+            }
+            line.step();
+        }
+
+        for i in 0..4 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_line_index!(iter, 1);
+                assert_station_index!(iter, 3, 6, i);
+            }
+            line.step();
+        }
+        line.step();
+
+        for i in 0..4 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 1, 2, i);
+                assert_line_index!(iter, 5);
+            }
+            line.step();
+        }
+        line.step();
+
+        for i in 0..2 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 1, 2, i);
+                assert_station_index!(iter, 2, 4, i);
+            }
+            line.step();
+        }
+    }
+
     #[test]
     fn test_line_step() {
         let cfg = fast_line_factory::FastLineFactoryConfig::new(0..=2, 6, [3, 4], 6, 4, 5);
@@ -414,13 +565,12 @@ mod test {
             line.step();
             assert_eq!(line.fleet.len(), 4);
         }
-        
+
         line.step();
         for _ in 0..5 {
             line.step();
             assert_eq!(line.fleet.len(), 6);
         }
-
 
         line.step();
         for _ in 0..15 {

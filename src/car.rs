@@ -22,13 +22,14 @@ impl Car {
         location: CarLocation,
         direction: LineDirection,
         network_size: usize,
+        station_len: usize,
     ) -> Self {
         Self {
             destination,
             location,
             direction,
-            counter: Counter::new(0),
-            passengers: IndexList::new_with_default_index(dbg! {network_size}),
+            counter: station_len.into(),
+            passengers: IndexList::new_with_default_index(network_size),
         }
     }
 
@@ -91,6 +92,7 @@ impl Car {
 
     fn update_state(&mut self, kind: SegmentType) {
         if matches! {kind, SegmentType::Terminus(_)} {
+            dbg! {&self};
             self.direction.swap();
         }
     }

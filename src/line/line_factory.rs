@@ -62,12 +62,21 @@ impl LineFactoryConfig {
 pub struct StationInfoConfig {
     index: StationID,
     duration: Duration,
+    terminus: bool,
 }
 
 impl StationInfoConfig {
     #[must_use]
     pub fn new(index: StationID, duration: Duration) -> Self {
-        Self { index, duration }
+        Self {
+            index,
+            duration,
+            terminus: false,
+        }
+    }
+
+    fn set_terminus(&mut self) {
+        self.terminus = true;
     }
 }
 
@@ -122,7 +131,7 @@ pub fn line_factory(config: LineFactoryConfig) -> super::Line {
     let fleet = fleet::Fleet::new(train_count);
 
     super::Line::new(
-        dbg! {train_count},
+        train_count,
         term_a,
         term_b,
         railway,
@@ -150,8 +159,15 @@ fn railway_factory(
     station_ics: Vec<StationInfoConfig>,
     line_ics: Vec<LineInfoConfig>,
 ) -> line::Railway {
+    let station_ics = set_terminus(station_ics);
     let line = segment_vector_factory(station_ics, line_ics);
     line::Railway::new(line)
+}
+
+fn set_terminus(mut station_ics: Vec<StationInfoConfig>) -> Vec<StationInfoConfig> {
+    station_ics.first_mut().unwrap().set_terminus();
+    station_ics.last_mut().unwrap().set_terminus();
+    station_ics
 }
 
 fn segment_vector_factory(
@@ -188,7 +204,11 @@ fn station_segment_factory(station_ic: &StationInfoConfig) -> line::Segment {
 }
 
 fn station_segment_info_factory(station_ics: &StationInfoConfig) -> line::SegmentInfo {
-    let kind = line::SegmentType::Station(station_ics.index);
+    let kind = if station_ics.terminus {
+        line::SegmentType::Terminus(station_ics.index)
+    } else {
+        line::SegmentType::Station(station_ics.index)
+    };
     line::SegmentInfo::new(kind, station_ics.duration)
 }
 
@@ -222,6 +242,7 @@ mod test {
             .map(|index| StationInfoConfig {
                 index,
                 duration: 10,
+                terminus: false,
             })
             .collect();
 
@@ -238,6 +259,7 @@ mod test {
             .map(|index| StationInfoConfig {
                 index,
                 duration: 10,
+                terminus: false,
             })
             .collect();
         let line_ics = (0..2)

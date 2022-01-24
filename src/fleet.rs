@@ -30,7 +30,6 @@ impl Fleet {
         self.running.push(car);
     }
 
-
     pub fn len(&self) -> usize {
         self.running.len()
     }
@@ -38,6 +37,4 @@ impl Fleet {
     pub fn is_empty(&self) -> bool {
         self.running.is_empty()
     }
-
-
 }
