@@ -2,6 +2,7 @@ use super::line;
 use super::Duration;
 use super::StationID;
 use crate::fleet;
+use crate::passenger::callbacks;
 use crate::utils::mixed_iterator;
 
 pub struct LineFactoryConfig {
@@ -120,7 +121,10 @@ pub enum LineChunkKind {
 }
 
 #[must_use]
-pub fn line_factory(config: LineFactoryConfig) -> super::Line {
+pub fn line_factory<T>(config: LineFactoryConfig) -> super::Line<T>
+where
+    T: callbacks::PassengerAction,
+{
     let (term_a, term_b) = terminus_factory(
         &config.station_duration,
         config.depo_size,

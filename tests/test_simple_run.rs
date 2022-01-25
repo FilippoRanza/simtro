@@ -49,5 +49,5 @@ fn test_run() {
     let line_b = line::fast_line_factory::fast_line_factory(fast_line_config, total_station_count);
     let lines = vec![line_a, line_b];
 
-    engine::engine(steps, &pf, stations, lines);
+    engine::engine(steps, &pf, stations, lines, ());
 }

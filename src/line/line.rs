@@ -10,18 +10,19 @@ use super::Duration;
 use super::StationID;
 use crate::car;
 use crate::fleet;
+use crate::passenger::callbacks;
 use crate::station;
 use crate::station::{BoardPassengers, LandPassenger};
 use crate::utils::counter;
 
 /// Control the current state of
 /// a given metro line.
-pub struct Line {
+pub struct Line<T> {
     train_counter: counter::Counter,
     terminus_a: Terminus,
     terminus_b: Terminus,
     railway: Railway,
-    fleet: fleet::Fleet,
+    fleet: fleet::Fleet<T>,
     network_size: usize,
 }
 
@@ -52,13 +53,16 @@ impl LineDirection {
     }
 }
 
-impl Line {
+impl<T> Line<T>
+where
+    T: callbacks::PassengerAction + Send + Sync,
+{
     pub fn new<C>(
         counter: C,
         terminus_a: Terminus,
         terminus_b: Terminus,
         railway: Railway,
-        fleet: fleet::Fleet,
+        fleet: fleet::Fleet<T>,
         network_size: usize,
     ) -> Self
     where
@@ -85,7 +89,7 @@ impl Line {
 
     /// Board passengers on the train from the current
     /// station.
-    pub fn boarding_operations(&mut self, stats: &mut [station::Station]) {
+    pub fn boarding_operations(&mut self, stats: &mut [station::Station<T>]) {
         for car in self.fleet.in_station_car_iter() {
             let station = &mut stats[car.get_current_station()];
             station.board_passengers(car);
@@ -423,7 +427,7 @@ mod test {
     #[test]
     fn test_one_train_movement() {
         let cfg = fast_line_factory::FastLineFactoryConfig::new(0..=3, 6, [4, 4, 4], 6, 1, 0);
-        let mut line = fast_line_factory::fast_line_factory(cfg, 4);
+        let mut line: Line<()> = fast_line_factory::fast_line_factory(cfg, 4);
         line.step();
         assert_eq!(line.fleet.len(), 2);
         for i in 0..6 {
@@ -548,7 +552,7 @@ mod test {
     #[test]
     fn test_line_step() {
         let cfg = fast_line_factory::FastLineFactoryConfig::new(0..=2, 6, [3, 4], 6, 4, 5);
-        let mut line = fast_line_factory::fast_line_factory(cfg, 3);
+        let mut line: Line<()> = fast_line_factory::fast_line_factory(cfg, 3);
         assert!(line.fleet.is_empty());
         for _ in 0..5 {
             line.step();

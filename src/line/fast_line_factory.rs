@@ -1,6 +1,7 @@
 use super::line_factory;
 use super::Duration;
 use super::StationID;
+use crate::passenger::callbacks;
 
 pub struct FastLineFactoryConfig<Is, It> {
     station_ids: Is,
@@ -31,13 +32,14 @@ impl<Is, It> FastLineFactoryConfig<Is, It> {
     }
 }
 
-pub fn fast_line_factory<Is, It>(
+pub fn fast_line_factory<Is, It, Tc>(
     conf: FastLineFactoryConfig<Is, It>,
     total_station_count: usize,
-) -> super::Line
+) -> super::Line<Tc>
 where
     Is: IntoIterator<Item = StationID>,
     It: IntoIterator<Item = Duration>,
+    Tc: callbacks::PassengerAction,
 {
     let lfc = build_line_factory_config(conf, total_station_count);
     line_factory::line_factory(lfc)

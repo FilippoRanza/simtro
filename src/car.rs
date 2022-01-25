@@ -7,15 +7,15 @@ use crate::utils::counter::Counter;
 use crate::utils::index_list::IndexList;
 
 #[derive(Debug)]
-pub struct Car {
-    passengers: IndexList<Passenger, PassengerNextStopIndex>,
+pub struct Car<T> {
+    passengers: IndexList<Passenger<T>, PassengerNextStopIndex>,
     destination: usize,
     location: CarLocation,
     direction: LineDirection,
     counter: Counter,
 }
 
-impl Car {
+impl<T> Car<T> {
     #[must_use]
     pub fn new(
         destination: usize,
@@ -37,11 +37,11 @@ impl Car {
         self.location = loc;
     }
 
-    pub fn unboard_passengers(&mut self) -> &'_ mut Vec<Passenger> {
+    pub fn unboard_passengers(&mut self) -> &'_ mut Vec<Passenger<T>> {
         self.passengers.get_list_mut(self.get_current_station())
     }
 
-    pub fn board_passengers(&mut self, ps: &mut Vec<Passenger>) {
+    pub fn board_passengers(&mut self, ps: &mut Vec<Passenger<T>>) {
         self.passengers.append(ps);
     }
 
@@ -92,7 +92,6 @@ impl Car {
 
     fn update_state(&mut self, kind: SegmentType) {
         if matches! {kind, SegmentType::Terminus(_)} {
-            dbg! {&self};
             self.direction.swap();
         }
     }
