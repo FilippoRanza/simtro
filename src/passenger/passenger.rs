@@ -52,7 +52,6 @@ where
         self.dest == station
     }
 
-
     /// Set next direction - terminus station - to reach
     /// destination
     #[must_use]
