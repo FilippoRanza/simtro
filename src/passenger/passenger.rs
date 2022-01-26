@@ -41,11 +41,17 @@ where
         }
     }
 
-    /// Check if passenger is at its final destionation
+    /// Check if passenger is at its intermediate destionation
     #[must_use]
     pub fn is_destination(&self, station: usize) -> bool {
         self.next_stop == station
     }
+
+    #[must_use]
+    pub fn is_final_destination(&self, station: usize) -> bool {
+        self.dest == station
+    }
+
 
     /// Set next direction - terminus station - to reach
     /// destination

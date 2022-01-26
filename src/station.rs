@@ -117,10 +117,11 @@ where
 {
     fn land_passenger(&mut self, c: &mut Car<T>) {
         let passenger = c.unboard_passengers();
-        let iter = passenger
+        let index = self.index;
+        passenger
             .drain(..)
             .map(Passenger::leave_train)
-            .filter(|p| p.is_destination(self.index));
-        self.passengers.append_iter(iter);
+            .filter(|p| !p.is_final_destination(index))
+            .for_each(|p| self.enter_passenger(p));
     }
 }
