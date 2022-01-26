@@ -85,6 +85,7 @@ where
         self.start_train();
         self.terminus_a.step();
         self.terminus_b.step();
+        println!{"{:?}", self.railway.line}
     }
 
     /// Board passengers on the train from the current
@@ -105,7 +106,7 @@ where
                     .railway
                     .next_step(train.get_current_segment(), train.get_direction())
                 {
-                    train.next_step(time, dbg! {kind}, loc);
+                    train.next_step(time, kind, loc);
                 }
             }
         }
@@ -404,6 +405,7 @@ mod test {
 
     use super::super::fast_line_factory;
     use super::*;
+    use std::collections::HashSet;
 
     macro_rules! assert_station_index {
         ($iter: ident, $id: expr, $seg: expr, $i: expr) => {
@@ -422,6 +424,57 @@ mod test {
             assert!(!car.in_station());
             assert_eq!(car.get_current_segment(), $id);
         };
+    }
+
+    macro_rules! check_occupied_segment {
+        ($seg_id: expr, $segments: expr) => {
+            let id_set: HashSet<usize> = $seg_id.into_iter().collect();
+            for (id, seg) in $segments.iter().enumerate() {
+                if id_set.contains(&id) {
+                    assert!(
+                        !seg.is_free(LineDirection::DirectionA)
+                            || !seg.is_free(LineDirection::DirectionB),
+                        "{:?} {}",
+                        $segments,
+                        id
+                    );
+                } else {
+                    assert!(
+                        seg.is_free(LineDirection::DirectionA)
+                            && seg.is_free(LineDirection::DirectionB),
+                        "{:?} {}",
+                        $segments,
+                        id
+                    );
+                }
+            }
+        };
+    }
+
+    #[test]
+    fn test_set_free() {
+        let cfg = fast_line_factory::FastLineFactoryConfig::new(0..=3, 6, [4, 4, 4], 6, 1, 0);
+        let mut line: Line<()> = fast_line_factory::fast_line_factory(cfg, 4);
+        line.step();
+        for i in 0..6 {
+            assert_eq!(line.fleet.len(), 2);
+            {
+                let mut iter = line.fleet.running_cars_iter();
+                assert_station_index!(iter, 3, 6, i);
+                assert_station_index!(iter, 0, 0, i);
+            }
+            line.step();
+        }
+        line.step();
+        check_occupied_segment!([1, 5], line.railway.line);
+
+        for _ in 0..4 {
+            line.step();
+        }
+
+        line.step();
+        check_occupied_segment!([2, 4], line.railway.line);
+
     }
 
     #[test]

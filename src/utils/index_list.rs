@@ -73,6 +73,14 @@ where
     {
         iter.for_each(|i| self.push(i));
     }
+
+    pub fn len(&self) -> usize {
+        self.list.iter().map(Vec::len).sum()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() > 0
+    }
 }
 
 #[cfg(test)]

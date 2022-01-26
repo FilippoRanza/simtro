@@ -12,6 +12,7 @@ pub struct Car<T> {
     destination: usize,
     location: CarLocation,
     direction: LineDirection,
+    status: CarStatus,
     counter: Counter,
 }
 
@@ -29,6 +30,7 @@ impl<T> Car<T> {
             location,
             direction,
             counter: station_len.into(),
+            status: CarStatus::Running,
             passengers: IndexList::new_with_default_index(network_size),
         }
     }
@@ -90,12 +92,36 @@ impl<T> Car<T> {
         self.update_state(kind);
     }
 
+    pub fn is_swapping(&self) -> bool {
+        matches!{self.status, CarStatus::Swapping}
+    }
+
     fn update_state(&mut self, kind: SegmentType) {
         if matches! {kind, SegmentType::Terminus(_)} {
-            self.direction.swap();
+            match self.status {
+                CarStatus::Running => {},
+                CarStatus::Swapping => self.direction.swap()
+            }
+            self.status.next();
         }
     }
 }
+
+#[derive(Debug)]
+enum CarStatus {
+    Running,
+    Swapping,
+}
+
+impl CarStatus {
+    fn next(&mut self) {
+        match self {
+            Self::Running => *self = Self::Swapping,
+            Self::Swapping => *self = Self::Running
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum CarLocation {
     Segment { index: usize },
