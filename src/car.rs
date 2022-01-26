@@ -77,8 +77,16 @@ impl<T> Car<T> {
     }
 
     #[must_use]
-    pub fn get_direction(&self) -> LineDirection {
+    pub fn get_current_direction(&self) -> LineDirection {
         self.direction
+    }
+
+    #[must_use]
+    pub fn get_next_direction(&self) -> LineDirection {
+        match self.status {
+            CarStatus::Running => self.direction,
+            CarStatus::Swapping => self.direction.other(),
+        }
     }
 
     #[must_use]
@@ -93,14 +101,14 @@ impl<T> Car<T> {
     }
 
     pub fn is_swapping(&self) -> bool {
-        matches!{self.status, CarStatus::Swapping}
+        matches! {self.status, CarStatus::Swapping}
     }
 
     fn update_state(&mut self, kind: SegmentType) {
         if matches! {kind, SegmentType::Terminus(_)} {
             match self.status {
-                CarStatus::Running => {},
-                CarStatus::Swapping => self.direction.swap()
+                CarStatus::Running => {}
+                CarStatus::Swapping => self.direction.swap(),
             }
             self.status.next();
         }
@@ -117,7 +125,7 @@ impl CarStatus {
     fn next(&mut self) {
         match self {
             Self::Running => *self = Self::Swapping,
-            Self::Swapping => *self = Self::Running
+            Self::Swapping => *self = Self::Running,
         }
     }
 }

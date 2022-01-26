@@ -38,10 +38,7 @@ pub enum LineDirection {
 impl LineDirection {
     /// invert direction
     pub fn swap(&mut self) {
-        *self = match self {
-            Self::DirectionA => Self::DirectionB,
-            Self::DirectionB => Self::DirectionA,
-        };
+        *self = self.other();
     }
 
     /// Choose first element if ``DirectionA``, choose second if ``DirectionB``
@@ -49,6 +46,13 @@ impl LineDirection {
         match self {
             Self::DirectionA => t1,
             Self::DirectionB => t2,
+        }
+    }
+
+    pub fn other(&self) -> Self {
+        match self {
+            Self::DirectionA => Self::DirectionB,
+            Self::DirectionB => Self::DirectionA,
         }
     }
 }
@@ -85,7 +89,7 @@ where
         self.start_train();
         self.terminus_a.step();
         self.terminus_b.step();
-        println!{"{:?}", self.railway.line}
+        // println!{"{:?}", self.railway.line}
     }
 
     /// Board passengers on the train from the current
@@ -102,10 +106,7 @@ where
     fn move_train(&mut self) {
         for train in self.fleet.running_cars_iter() {
             if train.run_step() {
-                if let Some(NextStepInfo { time, kind, loc }) = self
-                    .railway
-                    .next_step(train.get_current_segment(), train.get_direction())
-                {
+                if let Some(NextStepInfo { time, kind, loc }) = self.railway.next_step(train) {
                     train.next_step(time, kind, loc);
                 }
             }
@@ -181,29 +182,32 @@ impl Railway {
     /// Check if it is possible to occupy the next trunk (relative to direction)
     /// If it is possible perform the actual truck state update and return info
     /// about the next step
-    fn next_step(&mut self, curr: usize, dir: LineDirection) -> Option<NextStepInfo> {
-        if self.is_free(curr, dir) {
-            Some(self.update_car_location(curr, dir))
+    fn next_step<T>(&mut self, train: &car::Car<T>) -> Option<NextStepInfo> {
+        if self.is_free(train) {
+            Some(self.update_car_location(train))
         } else {
             None
         }
     }
 
     /// Check if the next step is free or not.
-    fn is_free(&self, curr: usize, dir: LineDirection) -> bool {
-        let next = get_next_trunk(curr, dir);
-        self.line[next].is_free(dir)
+    fn is_free<T>(&self, train: &car::Car<T>) -> bool {
+        let next = self.get_next_trunk(train);
+        self.line[next].is_free(train.get_next_direction())
     }
 
     /// update truck state: free previous and occupy current.
-    fn update_car_location(&mut self, curr: usize, dir: LineDirection) -> NextStepInfo {
-        let next = get_next_trunk(curr, dir);
-        self.line[next].set_occupied(dir);
-        self.line[curr].set_free(dir);
+    fn update_car_location<T>(&mut self, train: &car::Car<T>) -> NextStepInfo {
+        let next = self.get_next_trunk(train);
+        let curr_dir = train.get_current_direction();
+        let next_dir = train.get_next_direction();
+        let curr = train.get_current_segment();
+        self.line[next].set_occupied(next_dir);
+        self.line[curr].set_free(curr_dir);
         NextStepInfo {
-            kind: self.line[next].get_type(dir),
-            time: self.line[next].get_duration(dir),
-            loc: self.line[next].make_location(dir, next),
+            kind: self.line[next].get_type(next_dir),
+            time: self.line[next].get_duration(next_dir),
+            loc: self.line[next].make_location(next_dir, next),
         }
     }
 
@@ -215,19 +219,23 @@ impl Railway {
     fn last_index(&self) -> usize {
         self.line.len() - 1
     }
+    fn get_next_trunk<T>(&self, train: &car::Car<T>) -> usize {
+        let curr = train.get_current_segment();
+        if train.is_swapping() {
+            curr
+        } else {
+            match train.get_next_direction() {
+                LineDirection::DirectionA => curr - 1,
+                LineDirection::DirectionB => curr + 1,
+            }
+        }
+    }
 }
 
 struct NextStepInfo {
     kind: SegmentType,
     time: usize,
     loc: car::CarLocation,
-}
-
-fn get_next_trunk(curr: usize, dir: LineDirection) -> usize {
-    match dir {
-        LineDirection::DirectionA => curr - 1,
-        LineDirection::DirectionB => curr + 1,
-    }
 }
 
 /// A terminus station can used
@@ -421,7 +429,7 @@ mod test {
     macro_rules! assert_line_index {
         ($iter: ident, $id: expr) => {
             let car = $iter.next().unwrap();
-            assert!(!car.in_station());
+            assert!(!car.in_station(), "{:?}", car);
             assert_eq!(car.get_current_segment(), $id);
         };
     }
@@ -451,6 +459,13 @@ mod test {
         };
     }
 
+    macro_rules! test_is_free {
+        ($railway: expr, $index: expr, $dir: expr, $free: expr) => {
+            let car = fast_make_car($index, $dir);
+            assert_eq!($railway.is_free(&car), $free);
+        };
+    }
+
     #[test]
     fn test_set_free() {
         let cfg = fast_line_factory::FastLineFactoryConfig::new(0..=3, 6, [4, 4, 4], 6, 1, 0);
@@ -474,7 +489,6 @@ mod test {
 
         line.step();
         check_occupied_segment!([2, 4], line.railway.line);
-
     }
 
     #[test]
@@ -559,7 +573,7 @@ mod test {
             line.step();
         }
 
-        for i in 0..2 {
+        for i in 0..=8 {
             assert_eq!(line.fleet.len(), 2);
             {
                 let mut iter = line.fleet.running_cars_iter();
@@ -673,9 +687,12 @@ mod test {
     #[test]
     fn text_next_step_railway() {
         let mut railway = init_railway();
-        assert!(railway.next_step(0, LineDirection::DirectionB).is_none());
-        assert!(railway.next_step(1, LineDirection::DirectionB).is_none());
-        let res = railway.next_step(1, LineDirection::DirectionA);
+        let car = fast_make_car(0, LineDirection::DirectionB);
+        assert!(railway.next_step(&car).is_none());
+        let car = fast_make_car(1, LineDirection::DirectionB);
+        assert!(railway.next_step(&car).is_none());
+        let car = fast_make_car(1, LineDirection::DirectionA);
+        let res = railway.next_step(&car);
         assert! {
             matches!{res, Some(NextStepInfo{kind, time, loc})
                 if kind == SegmentType::Line &&
@@ -711,22 +728,22 @@ mod test {
     #[test]
     fn test_check_next_railway() {
         let railway = init_railway();
-        assert!(railway.is_free(1, LineDirection::DirectionA));
-        assert!(!railway.is_free(1, LineDirection::DirectionB));
+        test_is_free!(railway, 1, LineDirection::DirectionA, true);
+        test_is_free!(railway, 1, LineDirection::DirectionB, false);
     }
 
     #[test]
     fn test_update_railway_position() {
         let mut railway = init_railway();
-        let NextStepInfo { kind, time, loc } =
-            railway.update_car_location(1, LineDirection::DirectionA);
+        let car = fast_make_car(1, LineDirection::DirectionA);
+        let NextStepInfo { kind, time, loc } = railway.update_car_location(&car);
         assert_eq!(time, 0);
         assert!(matches! {kind, SegmentType::Line});
 
-        assert!(railway.is_free(0, LineDirection::DirectionB));
-        assert!(!railway.is_free(1, LineDirection::DirectionA));
-        assert!(!railway.is_free(1, LineDirection::DirectionB));
-        assert!(railway.is_free(2, LineDirection::DirectionA));
+        test_is_free!(railway, 0, LineDirection::DirectionB, true);
+        test_is_free!(railway, 1, LineDirection::DirectionA, false);
+        test_is_free!(railway, 1, LineDirection::DirectionB, false);
+        test_is_free!(railway, 2, LineDirection::DirectionA, true);
         assert!(matches! {loc, car::CarLocation::Segment{index} if index == 0});
     }
 
@@ -804,5 +821,9 @@ mod test {
             Segment::Single(init_segment_info(SegmentStatus::Occupied)),
         ];
         Railway { line }
+    }
+
+    fn fast_make_car(index: usize, dir: LineDirection) -> car::Car<()> {
+        car::Car::new(10, car::CarLocation::Segment { index }, dir, 0, 0)
     }
 }
