@@ -113,6 +113,14 @@ mod test {
     }
 
     #[test]
+    fn test_is_empty() {
+        let mut index_list = IndexList::new(10, 10);
+        assert!(index_list.is_empty());
+        index_list.append(&mut vec![1, 2, 3]);
+        assert!(!index_list.is_empty());
+    }
+
+    #[test]
     fn test_index_list_append() {
         let mut index_list = IndexList::new(10, 10);
         // values are reverse sorted by decade
